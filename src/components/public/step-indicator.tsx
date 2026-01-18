@@ -50,8 +50,8 @@ export default function StepIndicator({ steps, currentStep, primaryColor = '#F97
                                     isCompleted || isCurrent
                                         ? {
                                             backgroundColor: primaryColor,
-                                            ringColor: `${primaryColor}40`
-                                        }
+                                            '--tw-ring-color': `${primaryColor}40`
+                                        } as React.CSSProperties
                                         : {}
                                 }
                             >
