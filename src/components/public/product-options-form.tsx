@@ -214,8 +214,16 @@ export default function ProductOptionsForm({
                 totalPrice,
                 restaurant.id,
                 {
-                    first_half: { options: firstHalfOptions, price: firstHalfPrice },
-                    second_half: { options: secondHalfOptions, price: secondHalfPrice }
+                    first_half: {
+                        product: product,
+                        options: firstHalfOptions,
+                        price: firstHalfPrice
+                    },
+                    second_half: {
+                        product: product,
+                        options: secondHalfOptions,
+                        price: secondHalfPrice
+                    }
                 },
                 observation
             )
