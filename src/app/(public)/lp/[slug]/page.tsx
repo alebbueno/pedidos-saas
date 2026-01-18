@@ -1,5 +1,6 @@
 import { getMenu, getRestaurantBySlug } from '@/actions/restaurant'
 import RestaurantHeader from '@/components/public/restaurant-header'
+import CustomerNavbar from '@/components/public/customer-navbar'
 import ProductList from '@/components/public/product-list'
 import FloatingCart from '@/components/public/floating-cart'
 import { notFound } from 'next/navigation'
@@ -20,6 +21,7 @@ export default async function RestaurantPage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
+            <CustomerNavbar restaurant={restaurant} />
             <RestaurantHeader restaurant={restaurant} />
 
             <main className="container mx-auto px-4 py-8 max-w-2xl">

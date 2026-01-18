@@ -32,6 +32,50 @@ export default function OrderCard({ order }: { order: any }) {
 
                 <div className="border-t border-dashed border-gray-100 pt-3 space-y-2">
                     {order.items?.map((item: any, i: number) => {
+                        // Check if it's a half and half item
+                        if (item.half_and_half) {
+                            const firstProduct = item.half_and_half.first_half?.product?.name || 'Produto 1'
+                            const secondProduct = item.half_and_half.second_half?.product?.name || 'Produto 2'
+
+                            // Get shared options (they're the same in both halves)
+                            const sharedOptions = item.half_and_half.first_half?.options || item.half_and_half.second_half?.options || []
+                            const opts = sharedOptions.length > 0
+                                ? sharedOptions.map((o: any) => o.option_name).join(', ')
+                                : ''
+
+                            return (
+                                <div key={i} className="flex gap-2">
+                                    <div className="font-bold text-gray-900 min-w-[20px]">{item.quantity}x</div>
+                                    <div className="flex-1">
+                                        <div className="font-medium text-gray-800 flex items-center gap-1">
+                                            <span>🍕 Meio a Meio</span>
+                                        </div>
+                                        <div className="text-xs text-gray-600 mt-1 space-y-0.5">
+                                            <div className="flex items-start gap-1">
+                                                <span className="text-orange-600 font-semibold">1ª:</span>
+                                                <span>{firstProduct}</span>
+                                            </div>
+                                            <div className="flex items-start gap-1">
+                                                <span className="text-blue-600 font-semibold">2ª:</span>
+                                                <span>{secondProduct}</span>
+                                            </div>
+                                        </div>
+                                        {opts && (
+                                            <div className="text-xs text-gray-400 leading-snug mt-1 bg-gray-50 px-2 py-1 rounded">
+                                                Opções: {opts}
+                                            </div>
+                                        )}
+                                        {item.observations && (
+                                            <div className="text-xs text-amber-600 italic bg-amber-50 px-1.5 py-0.5 rounded mt-1 inline-block">
+                                                Obs: {item.observations}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        }
+
+                        // Normal product display
                         const opts = item.options_selected && Array.isArray(item.options_selected)
                             ? item.options_selected.map((o: any) => o.option_name).join(', ')
                             : '';

@@ -14,7 +14,13 @@ export interface Restaurant {
   logo_url: string | null
   whatsapp_number: string | null
   address: string | null
-  opening_hours: string | null
+  opening_hours: {
+    [key: string]: {
+      open: string
+      close: string
+      enabled: boolean
+    }
+  } | null
   delivery_fee: number
   is_open: boolean
   subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled'
@@ -24,6 +30,26 @@ export interface Restaurant {
     welcome_message?: string
   } | null
   owner_id?: string
+  // Customization fields
+  primary_color?: string | null
+  secondary_color?: string | null
+  background_color?: string | null
+  text_color?: string | null
+  banner_url?: string | null
+  font_family?: string | null
+  // Additional fields
+  description?: string | null
+  phone?: string | null
+  email?: string | null
+  payment_methods?: {
+    cash?: boolean
+    credit?: boolean
+    debit?: boolean
+    pix?: boolean
+    voucher?: boolean
+  } | null
+  // Half and half configuration
+  half_and_half_pricing_method?: 'highest' | 'average' | 'sum'
 }
 
 export interface Category {
@@ -31,6 +57,7 @@ export interface Category {
   restaurant_id: string
   name: string
   display_order: number
+  allows_half_and_half?: boolean
 }
 
 export interface Product {
@@ -42,6 +69,7 @@ export interface Product {
   base_price: number
   image_url: string | null
   is_active: boolean
+  allows_half_and_half?: boolean
 }
 
 export interface ProductOptionGroup {
@@ -53,6 +81,7 @@ export interface ProductOptionGroup {
   max_selection: number
   price_rule: 'sum' | 'highest' | 'average'
   options?: ProductOption[]
+  product_options?: ProductOption[] // Supabase returns this name
 }
 
 export interface ProductOption {
@@ -110,4 +139,18 @@ export interface CartItem {
   quantity: number
   selectedOptions: CartItemOption[]
   totalPrice: number
+  // Half and half structure (optional)
+  half_and_half?: {
+    first_half: {
+      product: Product // Product selected for first half
+      options: CartItemOption[]
+      price: number
+    }
+    second_half: {
+      product: Product // Product selected for second half
+      options: CartItemOption[]
+      price: number
+    }
+  }
 }
+

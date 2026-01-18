@@ -1,78 +1,100 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Product, Restaurant } from '@/types'
+import { Product, Restaurant, Category } from '@/types'
 import Image from 'next/image'
-import ProductModal from './product-modal'
+import Link from 'next/link'
 
 interface ProductCardProps {
     product: Product & { product_option_groups: any[] }
     restaurant: Restaurant
+    category?: Category
 }
 
-export default function ProductCard({ product, restaurant }: ProductCardProps) {
-    const [isModalOpen, setIsModalOpen] = useState(false)
+export default function ProductCard({ product, restaurant, category }: ProductCardProps) {
+    const primaryColor = restaurant.primary_color || '#F97316'
+    const textColor = restaurant.text_color || '#000000'
+
+    // Calculate minimum price from options when base_price is 0
+    const calculateMinimumPrice = () => {
+        let minPrice = Number(product.base_price)
+
+        // If base price is 0, calculate from required options
+        if (minPrice === 0 && product.product_option_groups) {
+            product.product_option_groups.forEach((group: any) => {
+                if (group.min_selection > 0 && group.product_options && group.product_options.length > 0) {
+                    // Find the minimum price modifier in this required group
+                    const minModifier = Math.min(...group.product_options.map((opt: any) => Number(opt.price_modifier)))
+                    minPrice += minModifier
+                }
+            })
+        }
+
+        return minPrice
+    }
+
+    const displayPrice = calculateMinimumPrice()
 
     return (
-        <>
+        <Link href={`/lp/${restaurant.slug}/product/${product.id}`}>
             <Card
-                className="group overflow-hidden rounded-2xl border-none shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer bg-white"
-                onClick={() => setIsModalOpen(true)}
+                className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group bg-white border border-gray-100"
             >
-                <div className="flex flex-row md:flex-col h-32 md:h-[280px]">
-                    {product.image_url ? (
-                        <div className="w-1/3 md:w-full relative h-full md:h-48 overflow-hidden">
+                <div className="flex gap-4 p-4">
+                    {/* Product Image */}
+                    <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                        {product.image_url ? (
                             <Image
                                 src={product.image_url}
                                 alt={product.name}
                                 fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                className="object-cover group-hover:scale-110 transition-transform duration-300"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent md:block hidden" />
-                        </div>
-                    ) : (
-                        <div className="w-1/3 md:w-full h-full md:h-48 bg-gray-100 flex items-center justify-center text-gray-300">
-                            <span className="text-4xl">🍽️</span>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                                Sem imagem
+                            </div>
+                        )}
+                    </div>
 
-                    <div className="flex-1 p-4 md:p-5 flex flex-col justify-between">
-                        <div className="space-y-1">
-                            <div className="flex justify-between items-start">
-                                <h3 className="font-bold text-gray-900 text-base md:text-lg line-clamp-2 leading-tight">
-                                    {product.name}
-                                </h3>
-                                <div className="md:hidden">
-                                    <span className="font-bold text-primary text-sm bg-primary/10 px-2 py-1 rounded-full">
-                                        {Number(product.base_price) > 0 ? `R$ ${Number(product.base_price).toFixed(2)}` : 'R$ --'}
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div>
+                            <h3 className="font-bold text-base mb-1 line-clamp-1" style={{ color: textColor }}>
+                                {product.name}
+                            </h3>
+
+                            {/* Half and Half Badge */}
+                            {category?.allows_half_and_half && (
+                                <div className="mb-2">
+                                    <span className="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                                        🍕 Meio a Meio disponível
                                     </span>
                                 </div>
-                            </div>
-                            <p className="text-xs md:text-sm text-gray-500 line-clamp-2 font-medium">
-                                {product.description}
-                            </p>
+                            )}
                         </div>
 
-                        <div className="hidden md:flex justify-between items-center mt-4">
-                            <span className="text-lg font-bold text-gray-900">
-                                {Number(product.base_price) > 0 ? `R$ ${Number(product.base_price).toFixed(2)}` : 'A partir de...'}
+                        <div className="flex justify-between items-center mt-2">
+                            <span
+                                className="text-base md:text-lg font-bold"
+                                style={{ color: primaryColor }}
+                            >
+                                {displayPrice > 0
+                                    ? `R$ ${displayPrice.toFixed(2)}`
+                                    : 'Consultar'}
                             </span>
-                            <Button size="sm" className="rounded-full px-6 font-bold shadow-md hover:shadow-lg transition-all">
+                            <Button
+                                size="sm"
+                                className="rounded-full px-4 md:px-6 font-bold shadow-md hover:shadow-lg transition-all text-white"
+                                style={{ backgroundColor: primaryColor }}
+                            >
                                 Adicionar
                             </Button>
                         </div>
                     </div>
                 </div>
             </Card>
-
-            <ProductModal
-                product={product}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                restaurantId={restaurant.id}
-            />
-        </>
+        </Link>
     )
 }

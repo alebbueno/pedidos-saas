@@ -4,6 +4,7 @@ import { Category, Product, Restaurant } from '@/types'
 import ProductCard from '@/components/public/product-card'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 interface ProductListProps {
     categories: Category[]
@@ -13,6 +14,9 @@ interface ProductListProps {
 
 export default function ProductList({ categories, products, restaurant }: ProductListProps) {
     const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.id || '')
+
+    const primaryColor = restaurant.primary_color || '#F97316'
+    const textColor = restaurant.text_color || '#000000'
 
     useEffect(() => {
         const handleScroll = () => {
@@ -42,9 +46,10 @@ export default function ProductList({ categories, products, restaurant }: Produc
                         className={cn(
                             "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
                             activeCategory === cat.id
-                                ? "bg-primary text-primary-foreground shadow-md scale-105"
+                                ? "text-white shadow-md scale-105"
                                 : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
                         )}
+                        style={activeCategory === cat.id ? { backgroundColor: primaryColor } : {}}
                     >
                         {cat.name}
                     </button>
@@ -59,17 +64,37 @@ export default function ProductList({ categories, products, restaurant }: Produc
                     return (
                         <div key={category.id} id={`category-${category.id}`} className="scroll-mt-32">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-800">{category.name}</h2>
-                                <span className="text-sm text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
-                                    {categoryProducts.length} itens
-                                </span>
+                                <div className="flex-1">
+                                    <h2
+                                        className="text-2xl font-bold"
+                                        style={{ color: textColor }}
+                                    >
+                                        {category.name}
+                                    </h2>
+                                    <span className="text-sm text-gray-400 bg-gray-100 px-2 py-1 rounded-full mt-2 inline-block">
+                                        {categoryProducts.length} itens
+                                    </span>
+                                </div>
+
+                                {/* Half and Half Button */}
+                                {category.allows_half_and_half && categoryProducts.length >= 2 && (
+                                    <Link href={`/lp/${restaurant.slug}/half-and-half/${category.id}`}>
+                                        <button
+                                            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all"
+                                            style={{ backgroundColor: primaryColor }}
+                                        >
+                                            🍕 Montar Meio a Meio
+                                        </button>
+                                    </Link>
+                                )}
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 gap-4">
                                 {categoryProducts.map((product) => (
                                     <ProductCard
                                         key={product.id}
                                         product={product}
                                         restaurant={restaurant}
+                                        category={category}
                                     />
                                 ))}
                             </div>

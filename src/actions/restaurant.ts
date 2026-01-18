@@ -57,49 +57,38 @@ export async function getMenu(restaurantId: string) {
 export async function createOrder(orderData: any) {
     const supabase = await createClient()
 
-    // 1. Get or Create Customer
-    const { data: customer, error: custError } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('phone', orderData.phone)
-        .eq('restaurant_id', orderData.restaurantId)
-        .single()
+    // Use the customerId from orderData (already created in checkout)
+    const customerId = orderData.customerId
 
-    let customerId = customer?.id
-
-    if (!customer) {
-        const { data: newCustomer, error: newCustError } = await supabase
-            .from('customers')
-            .insert({
-                restaurant_id: orderData.restaurantId,
-                name: orderData.name,
-                phone: orderData.phone,
-                address: orderData.address
-            })
-            .select()
-            .single()
-
-        if (newCustError) {
-            console.error('Error creating customer:', newCustError)
-            return { error: 'Failed to create customer' }
-        }
-        customerId = newCustomer.id
+    if (!customerId) {
+        console.error('No customerId provided in orderData')
+        return { error: 'Customer ID is required' }
     }
 
-    // 2. Create Order
-    const { data: order, error: orderError } = await supabase
+    // Generate IDs and Timestamp server-side to avoid needing SELECT permissions
+    const orderId = crypto.randomUUID()
+    const now = new Date().toISOString()
+
+    const newOrder: any = {
+        id: orderId,
+        restaurant_id: orderData.restaurantId,
+        customer_id: customerId,
+        total_amount: orderData.total,
+        delivery_type: orderData.deliveryType,
+        delivery_address: orderData.address,
+        payment_method: orderData.paymentMethod,
+        status: 'new',
+        created_at: now,
+        updated_at: now
+    }
+
+    // Create Order
+    // Note: We do NOT use .select() here because the public RLS policy prevents 
+    // selecting the order after insertion (even if they just created it).
+    // Instead we construct the object manually.
+    const { error: orderError } = await supabase
         .from('orders')
-        .insert({
-            restaurant_id: orderData.restaurantId,
-            customer_id: customerId,
-            total_amount: orderData.total,
-            delivery_type: orderData.deliveryType,
-            delivery_address: orderData.address,
-            payment_method: orderData.paymentMethod,
-            status: 'new'
-        })
-        .select()
-        .single()
+        .insert(newOrder)
 
     if (orderError) {
         console.error('Error creating order', orderError)
@@ -107,14 +96,31 @@ export async function createOrder(orderData: any) {
     }
 
     // 3. Create Order Items
-    const items = orderData.items.map((item: any) => ({
-        order_id: order.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        unit_price: item.product.base_price,
-        total_price: item.totalPrice,
-        options_selected: item.selectedOptions
-    }))
+    const items = orderData.items.map((item: any) => {
+        const orderItem: any = {
+            order_id: orderId,
+            product_id: item.product.id,
+            quantity: item.quantity,
+            unit_price: item.product.base_price,
+            total_price: item.totalPrice,
+            options_selected: item.selectedOptions
+        }
+
+        // Add half_and_half data if present
+        if (item.half_and_half) {
+            orderItem.half_and_half = item.half_and_half
+            console.log('🍕 HALF AND HALF ITEM:', JSON.stringify(orderItem.half_and_half, null, 2))
+        }
+
+        // Add observations if present
+        if (item.observation) {
+            orderItem.observations = item.observation
+        }
+
+        return orderItem
+    })
+
+    console.log('📦 ORDER ITEMS TO INSERT:', JSON.stringify(items, null, 2))
 
     const { error: itemsError } = await supabase
         .from('order_items')
@@ -122,8 +128,9 @@ export async function createOrder(orderData: any) {
 
     if (itemsError) {
         console.error('Error items', itemsError)
+        // Note: In a real app we might want to rollback the order here
         return { error: 'Failed to create items' }
     }
 
-    return { success: true, order }
+    return { success: true, order: newOrder }
 }
