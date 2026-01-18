@@ -223,8 +223,16 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                 totalPrice,
                 restaurantId,
                 {
-                    first_half: { options: firstHalfOptions, price: firstHalfPrice },
-                    second_half: { options: secondHalfOptions, price: secondHalfPrice }
+                    first_half: {
+                        product: product,
+                        options: firstHalfOptions,
+                        price: firstHalfPrice
+                    },
+                    second_half: {
+                        product: product,
+                        options: secondHalfOptions,
+                        price: secondHalfPrice
+                    }
                 },
                 observation
             )
