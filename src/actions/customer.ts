@@ -111,22 +111,44 @@ export async function getCustomerByPhone(phone: string) {
     const supabase = await createClient()
 
     try {
-        const { data, error } = await supabase
-            .from('customers')
-            .select('*')
-            .eq('phone', phone)
-            .single()
+        // Normalize phone number: remove all non-digit characters
+        const normalizedPhone = phone.replace(/\D/g, '')
+        console.log(`[getCustomerByPhone] Searching for phone: ${phone} (normalized: ${normalizedPhone})`)
+        
+        // Try multiple phone formats
+        const phoneVariations = [
+            normalizedPhone, // Original normalized
+            phone, // Original as received
+            normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`, // With country code
+            normalizedPhone.startsWith('55') ? normalizedPhone.slice(2) : normalizedPhone, // Without country code
+        ].filter((v, i, arr) => arr.indexOf(v) === i) // Remove duplicates
+        
+        console.log(`[getCustomerByPhone] Trying phone variations:`, phoneVariations)
+        
+        // Try each variation
+        for (const phoneVar of phoneVariations) {
+            const { data, error } = await supabase
+                .from('customers')
+                .select('*')
+                .eq('phone', phoneVar)
+                .maybeSingle()
 
-        if (error) {
-            if (error.code === 'PGRST116') {
-                // No customer found
-                return { success: true, customer: null }
+            if (error && error.code !== 'PGRST116') {
+                console.error(`[getCustomerByPhone] Error searching with phone ${phoneVar}:`, error)
+                continue
             }
-            return { success: false, error: error.message }
-        }
 
-        return { success: true, customer: data as Customer }
+            if (data) {
+                console.log(`[getCustomerByPhone] Found customer with phone variation ${phoneVar}:`, data.id)
+                return { success: true, customer: data as Customer }
+            }
+        }
+        
+        // If no customer found with any variation
+        console.log(`[getCustomerByPhone] No customer found for phone: ${phone} (tried: ${phoneVariations.join(', ')})`)
+        return { success: true, customer: null }
     } catch (error: any) {
+        console.error('[getCustomerByPhone] Exception:', error)
         return { success: false, error: error.message }
     }
 }

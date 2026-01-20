@@ -1,4 +1,3 @@
-import { processAgentMessage } from '@/lib/agent'
 import { NextResponse } from 'next/server'
 
 // Evolution API Webhook Handler
@@ -6,7 +5,6 @@ export async function POST(req: Request) {
     try {
         const url = new URL(req.url)
         const restaurantId = url.searchParams.get('restaurantId')
-        // const instanceName = url.searchParams.get('instance') || 'default' 
 
         if (!restaurantId) {
             return NextResponse.json({ error: 'Missing restaurantId' }, { status: 400 })
@@ -32,10 +30,30 @@ export async function POST(req: Request) {
             return NextResponse.json({ status: 'ignored', reason: 'no_content' })
         }
 
-        // Process with Agent
-        const response = await processAgentMessage(restaurantId, senderNumber, content)
+        // Process with new Agent API (which automatically recognizes customers by phone)
+        // Import and call the agent handler directly
+        const { POST: agentPOST } = await import('@/app/api/agent/route')
+        const agentRequest = new Request('http://localhost/api/agent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                restaurantId,
+                phoneNumber: senderNumber,
+                message: content,
+            }),
+        })
 
-        if (response.reply) {
+        const agentResponse = await agentPOST(agentRequest)
+        const agentData = await agentResponse.json()
+
+        if (agentData.error) {
+            console.error('Agent API error:', agentData.error)
+            return NextResponse.json({ status: 'error', reason: 'agent_failed' })
+        }
+
+        if (agentData.reply) {
             // Send back via Evolution API
             const evolutionUrl = process.env.EVOLUTION_API_URL
             const evolutionKey = process.env.EVOLUTION_API_KEY
@@ -56,12 +74,12 @@ export async function POST(req: Request) {
                             linkPreview: false
                         },
                         textMessage: {
-                            text: response.reply
+                            text: agentData.reply
                         }
                     })
                 })
             } else {
-                console.log('Evolution API not configured. Reply would be:', response.reply)
+                console.log('Evolution API not configured. Reply would be:', agentData.reply)
             }
         }
 

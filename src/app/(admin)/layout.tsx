@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Palette } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Palette, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +18,7 @@ export default function AdminLayout({
         { href: '/dashboard/orders', label: 'Pedidos', icon: ShoppingBag },
         { href: '/dashboard/menu', label: 'Cardápio', icon: UtensilsCrossed },
         { href: '/dashboard/customers', label: 'Clientes', icon: Users },
+        { href: '/dashboard/agent-config', label: 'Agente IA', icon: Bot },
         { href: '/dashboard/customization', label: 'Personalização', icon: Palette },
         { href: '/dashboard/settings', label: 'Configurações', icon: Settings },
     ]
