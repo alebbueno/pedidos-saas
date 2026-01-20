@@ -2,13 +2,12 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ArrowRight, Zap, Star } from 'lucide-react'
 
 export default function SignupPage() {
     const [name, setName] = useState('')
@@ -72,35 +71,92 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-blue-50 px-4 py-12">
-            <div className="w-full max-w-md">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
-                        Pedidos SaaS
-                    </h1>
-                    <p className="text-gray-600 mt-2">Crie sua conta e comece grátis</p>
-                </div>
+        <div className="min-h-screen flex">
+            {/* Left Column - Image (60%) */}
+            <div className="hidden lg:flex lg:w-[60%] bg-[#FFC107] relative overflow-hidden items-center justify-center">
+                {/* Background Image Placeholder */}
+                <div
+                    className="absolute inset-0 opacity-40 bg-cover bg-center mix-blend-multiply"
+                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=2574&auto=format&fit=crop)' }}
+                ></div>
 
-                <Card className="shadow-xl border-0 backdrop-blur-sm bg-white/80">
-                    <CardHeader className="text-center space-y-2 pb-4">
-                        <CardTitle className="text-2xl">Criar Conta</CardTitle>
-                        <CardDescription>
-                            Preencha seus dados para começar
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                {/* Overlay details */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#FF3B30]/80 to-[#FFC107]/80 opacity-90"></div>
+
+                {/* Back to Home Button */}
+                <Link
+                    href="/"
+                    className="absolute top-8 left-8 z-20 flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-black/20 hover:bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10"
+                >
+                    <ArrowRight className="w-4 h-4 rotate-180" />
+                    <span className="text-sm font-medium">Voltar para o site</span>
+                </Link>
+
+                <div className="relative z-10 p-12 text-white max-w-2xl">
+                    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#FF3B30] font-bold text-3xl mb-8 shadow-xl">
+                        M
+                    </div>
+                    <h1 className="text-5xl font-extrabold mb-6 leading-tight">
+                        Comece a vender sem taxas hoje mesmo.
+                    </h1>
+
+                    <div className="space-y-6 mt-12">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                                <Zap className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg">Setup Instantâneo</h3>
+                                <p className="text-white/80">Crie seu cardápio em minutos.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                                <Star className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg">Teste Grátis</h3>
+                                <p className="text-white/80">7 dias sem compromisso.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Column - Form (40%) */}
+            <div className="w-full lg:w-[40%] flex items-center justify-center bg-white p-8 lg:p-12">
+                <div className="w-full max-w-sm space-y-8">
+                    {/* Brands for Mobile */}
+                    <div className="text-center lg:text-left">
+                        <div className="inline-flex lg:hidden items-center gap-2 group mb-2">
+                            <div className="w-10 h-10 rounded-full bg-[#FF3B30] flex items-center justify-center text-white font-bold text-xl">
+                                M
+                            </div>
+                            <span className="text-2xl font-bold text-slate-900 tracking-tight">
+                                MenuJá
+                            </span>
+                        </div>
+                        <h2 className="text-3xl font-bold text-slate-900 mt-4">Criar conta grátis</h2>
+                        <p className="text-slate-500 mt-2">
+                            Já tem uma conta?{' '}
+                            <Link href="/login" className="text-[#FF3B30] font-semibold hover:underline">
+                                Fazer login
+                            </Link>
+                        </p>
+                    </div>
+
+                    <div className="space-y-5">
                         {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
                                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                                <span className="text-sm">{error}</span>
+                                {error}
                             </div>
                         )}
 
                         {success && (
-                            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                            <div className="bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
                                 <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                                <span className="text-sm">Conta criada! Redirecionando...</span>
+                                Conta criada! Redirecionando...
                             </div>
                         )}
 
@@ -112,7 +168,7 @@ export default function SignupPage() {
                                 placeholder="Seu nome"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
-                                className="h-11 transition-all focus:ring-2 focus:ring-orange-500"
+                                className="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-[#FF3B30] focus:border-[#FF3B30] transition-all"
                                 disabled={loading || success}
                             />
                         </div>
@@ -122,62 +178,58 @@ export default function SignupPage() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="seu@email.com"
+                                placeholder="seunegocio@email.com"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                className="h-11 transition-all focus:ring-2 focus:ring-orange-500"
+                                className="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-[#FF3B30] focus:border-[#FF3B30] transition-all"
                                 disabled={loading || success}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Senha</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="Mínimo 6 caracteres"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                className="h-11 transition-all focus:ring-2 focus:ring-orange-500"
-                                disabled={loading || success}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                            <Input
-                                id="confirmPassword"
-                                type="password"
-                                placeholder="Digite a senha novamente"
-                                value={confirmPassword}
-                                onChange={e => setConfirmPassword(e.target.value)}
-                                className="h-11 transition-all focus:ring-2 focus:ring-orange-500"
-                                disabled={loading || success}
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Senha</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="******"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    className="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-[#FF3B30] focus:border-[#FF3B30] transition-all"
+                                    disabled={loading || success}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirmar</Label>
+                                <Input
+                                    id="confirmPassword"
+                                    type="password"
+                                    placeholder="******"
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    className="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-[#FF3B30] focus:border-[#FF3B30] transition-all"
+                                    disabled={loading || success}
+                                />
+                            </div>
                         </div>
 
                         <Button
-                            className="w-full h-11 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl"
+                            className="w-full h-12 bg-[#FF3B30] hover:bg-[#D32F2F] text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:shadow-red-200 transition-all text-base mt-2"
                             onClick={handleSignup}
                             disabled={loading || success}
                         >
-                            {loading ? 'Criando conta...' : success ? 'Conta criada!' : 'Criar Conta'}
+                            {loading ? 'Criando conta...' : (
+                                <span className="flex items-center gap-2">
+                                    Começar agora <ArrowRight className="w-5 h-5" />
+                                </span>
+                            )}
                         </Button>
+                    </div>
 
-                        <div className="text-center pt-4 border-t">
-                            <p className="text-sm text-gray-600">
-                                Já tem uma conta?{' '}
-                                <Link href="/login" className="text-orange-600 hover:text-orange-700 font-semibold hover:underline">
-                                    Fazer login
-                                </Link>
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <p className="text-center text-xs text-gray-500 mt-6">
-                    Ao criar uma conta, você concorda com nossos Termos de Uso
-                </p>
+                    <p className="text-center text-xs text-slate-400 mt-6 px-4">
+                        Ao criar uma conta, você concorda com nossos <Link href="#" className="underline hover:text-slate-600">Termos de Uso</Link> e <Link href="#" className="underline hover:text-slate-600">Política de Privacidade</Link>.
+                    </p>
+                </div>
             </div>
         </div>
     )
