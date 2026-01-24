@@ -1,23 +1,16 @@
-'use client'
+import { getOwnerRestaurant } from '@/actions/admin'
+import { AdminShell } from '@/components/admin/admin-shell'
 
-import { Sidebar } from '@/components/admin/Sidebar'
-
-export default function AdminLayout({
+export default async function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    return (
-        <div className="flex min-h-screen bg-[#FAFAFA]">
-            {/* Sidebar Component */}
-            <Sidebar />
+    const restaurant = await getOwnerRestaurant()
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto md:ml-[200px] h-screen bg-[#FAFAFA]">
-                <div className="p-8 max-w-[1600px] mx-auto min-h-full">
-                    {children}
-                </div>
-            </main>
-        </div>
+    return (
+        <AdminShell restaurantId={restaurant?.id}>
+            {children}
+        </AdminShell>
     )
 }

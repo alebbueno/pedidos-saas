@@ -158,8 +158,9 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
             const phoneNumbers = phone.replace(/\D/g, '')
 
             // 1. Create or update customer
-            const customerResult = await findOrCreateCustomer(phoneNumbers, name, email)
+            const customerResult = await findOrCreateCustomer(phoneNumbers, name, email, restaurant.id)
             if (!customerResult.success || !customerResult.customer) {
+                console.error('Customer Error:', customerResult.error)
                 alert('Erro ao salvar dados do cliente')
                 setIsSubmitting(false)
                 return

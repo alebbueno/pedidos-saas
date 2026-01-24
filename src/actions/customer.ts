@@ -28,10 +28,10 @@ export interface CustomerAddress {
 /**
  * Find existing customer by phone or create a new one
  */
-export async function findOrCreateCustomer(phone: string, name: string, email?: string) {
+export async function findOrCreateCustomer(phone: string, name: string, email?: string, restaurantId?: string) {
     const supabase = await createClient()
 
-    console.log('[findOrCreateCustomer] Starting with phone:', phone)
+    console.log('[findOrCreateCustomer] Starting with phone:', phone, 'restaurantId:', restaurantId)
 
     try {
         // First, try to find existing customer using maybeSingle (doesn't throw error if not found)
@@ -46,14 +46,20 @@ export async function findOrCreateCustomer(phone: string, name: string, email?: 
 
         if (existing) {
             console.log('[findOrCreateCustomer] Customer exists, updating...', existing.id)
-            // Customer exists, update their info
+            // Customer exists, update their info and link to this restaurant
+            const updates: any = {
+                name,
+                email: email || existing.email,
+                updated_at: new Date().toISOString()
+            }
+
+            if (restaurantId) {
+                updates.restaurant_id = restaurantId
+            }
+
             const { data: updated, error: updateError } = await supabase
                 .from('customers')
-                .update({
-                    name,
-                    email: email || existing.email,
-                    updated_at: new Date().toISOString()
-                })
+                .update(updates)
                 .eq('id', existing.id)
                 .select()
                 .single()
@@ -69,9 +75,12 @@ export async function findOrCreateCustomer(phone: string, name: string, email?: 
 
         // Customer doesn't exist, create new one
         console.log('[findOrCreateCustomer] Customer not found, creating new...')
+        const newCustomerData: any = { phone, name, email }
+        if (restaurantId) newCustomerData.restaurant_id = restaurantId
+
         const { data: newCustomer, error: createError } = await supabase
             .from('customers')
-            .insert({ phone, name, email })
+            .insert(newCustomerData)
             .select()
             .single()
 
@@ -114,7 +123,7 @@ export async function getCustomerByPhone(phone: string) {
         // Normalize phone number: remove all non-digit characters
         const normalizedPhone = phone.replace(/\D/g, '')
         console.log(`[getCustomerByPhone] Searching for phone: ${phone} (normalized: ${normalizedPhone})`)
-        
+
         // Try multiple phone formats
         const phoneVariations = [
             normalizedPhone, // Original normalized
@@ -122,9 +131,9 @@ export async function getCustomerByPhone(phone: string) {
             normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`, // With country code
             normalizedPhone.startsWith('55') ? normalizedPhone.slice(2) : normalizedPhone, // Without country code
         ].filter((v, i, arr) => arr.indexOf(v) === i) // Remove duplicates
-        
+
         console.log(`[getCustomerByPhone] Trying phone variations:`, phoneVariations)
-        
+
         // Try each variation
         for (const phoneVar of phoneVariations) {
             const { data, error } = await supabase
@@ -143,7 +152,7 @@ export async function getCustomerByPhone(phone: string) {
                 return { success: true, customer: data as Customer }
             }
         }
-        
+
         // If no customer found with any variation
         console.log(`[getCustomerByPhone] No customer found for phone: ${phone} (tried: ${phoneVariations.join(', ')})`)
         return { success: true, customer: null }

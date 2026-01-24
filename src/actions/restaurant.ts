@@ -77,7 +77,7 @@ export async function createOrder(orderData: any) {
         delivery_type: orderData.deliveryType,
         delivery_address: orderData.address,
         payment_method: orderData.paymentMethod,
-        status: 'new',
+        status: 'pending',
         created_at: now,
         updated_at: now
     }

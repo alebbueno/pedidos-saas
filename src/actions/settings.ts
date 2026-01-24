@@ -13,13 +13,29 @@ export async function updateRestaurantInfo(
         phone?: string
         email?: string
         address?: string
+        address_cep?: string
+        address_street?: string
+        address_number?: string
+        address_complement?: string
+        address_neighborhood?: string
+        address_city?: string
+        address_state?: string
     }
 ) {
     const supabase = await createClient()
 
+    // Map props to database columns
+    const dbUpdates: any = { ...info }
+
+    // Map phone to whatsapp_number since that's what we use in onboarding
+    if (info.phone) {
+        dbUpdates.whatsapp_number = info.phone
+        delete dbUpdates.phone
+    }
+
     const { error } = await supabase
         .from('restaurants')
-        .update(info)
+        .update(dbUpdates)
         .eq('id', restaurantId)
 
     if (error) {

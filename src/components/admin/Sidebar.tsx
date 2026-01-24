@@ -2,12 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Palette, Bot } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Palette, Bot, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
-export function Sidebar() {
+interface SidebarProps {
+    isCollapsed?: boolean
+    toggleSidebar?: () => void
+}
+
+export function Sidebar({ isCollapsed = false, toggleSidebar }: SidebarProps) {
     const pathname = usePathname()
 
     const navItems = [
@@ -30,56 +35,100 @@ export function Sidebar() {
     }
 
     return (
-        <aside className="w-[200px] border-r border-[#E4E4E7] bg-white hidden md:flex flex-col h-screen fixed left-0 top-0 z-30 shadow-none">
+        <aside
+            className={cn(
+                "border-r border-[#E4E4E7] bg-white hidden md:flex flex-col h-screen fixed left-0 top-0 z-30 transition-all duration-300 ease-in-out shadow-sm",
+                isCollapsed ? "w-[80px]" : "w-[260px]"
+            )}
+        >
+            {/* Toggle Button */}
+            {toggleSidebar && (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    className="absolute -right-3 top-9 h-6 w-6 rounded-full border border-slate-200 bg-white shadow-md text-slate-500 hover:text-orange-500 hover:bg-orange-50 z-40 hidden md:flex items-center justify-center p-0"
+                >
+                    {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+                </Button>
+            )}
+
             {/* Logo Section */}
-            <div className="h-16 flex items-center px-6 border-b border-[#F4F4F5] bg-white">
-                <div className="flex items-center gap-2.5">
-                    <div className="size-8 bg-amber-500 rounded-lg flex items-center justify-center shadow-sm">
+            <div className={cn(
+                "h-20 flex items-center border-b border-[#F4F4F5] bg-white transition-all",
+                isCollapsed ? "justify-center px-0" : "px-6"
+            )}>
+                <div className="flex items-center gap-3">
+                    <div className="size-9 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-orange-200 shadow-lg flex-shrink-0">
                         <UtensilsCrossed className="size-5 text-white" />
                     </div>
-                    <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 leading-none">MenuJá</span>
-                        <span className="text-[10px] text-gray-500 mt-0.5 font-medium leading-none">Painel</span>
-                    </div>
+                    {!isCollapsed && (
+                        <div className="flex flex-col animate-in fade-in duration-300">
+                            <span className="font-bold text-gray-900 text-lg leading-none">MenuJá</span>
+                            <span className="text-[11px] text-orange-600 mt-1 font-medium leading-none bg-orange-50 px-1.5 py-0.5 rounded-full w-fit">
+                                Painel Admin
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto scrollbar-hide">
                 {navItems.map((item) => {
                     const Icon = item.icon
                     const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
 
                     return (
-                        <Link key={item.href} href={item.href} className="block">
-                            <Button
-                                variant="ghost"
+                        <Link key={item.href} href={item.href} className="block group">
+                            <div
                                 className={cn(
-                                    "w-full justify-start gap-3 h-10 transition-all duration-200",
+                                    "flex items-center transition-all duration-200 rounded-xl relative overflow-hidden",
+                                    isCollapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 px-3 w-full",
                                     isActive
-                                        ? "bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-900 border border-amber-100 shadow-sm"
+                                        ? "bg-orange-50 text-orange-900 shadow-sm border border-orange-100/50"
                                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-transparent"
                                 )}
+                                title={isCollapsed ? item.label : undefined}
                             >
-                                <Icon className={cn("size-4.5", isActive ? "text-amber-600" : "text-gray-500")} />
-                                <span className={cn("text-sm font-medium", isActive ? "text-amber-900" : "text-gray-600")}>
-                                    {item.label}
-                                </span>
-                            </Button>
+                                {isActive && !isCollapsed && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full" />
+                                )}
+                                <Icon className={cn(
+                                    "transition-all flex-shrink-0",
+                                    isCollapsed ? "size-6" : "size-5 mr-3",
+                                    isActive ? "text-orange-600" : "text-gray-500 group-hover:text-gray-700"
+                                )} />
+                                {!isCollapsed && (
+                                    <span className={cn(
+                                        "text-sm font-medium truncate",
+                                        isActive ? "text-orange-900" : "text-gray-600"
+                                    )}>
+                                        {item.label}
+                                    </span>
+                                )}
+                            </div>
                         </Link>
                     )
                 })}
             </nav>
 
             {/* User / Logout Section */}
-            <div className="p-4 border-t border-[#F4F4F5] bg-white">
+            <div className={cn(
+                "p-4 border-t border-[#F4F4F5] bg-gray-50/50",
+                isCollapsed ? "flex justify-center" : ""
+            )}>
                 <Button
                     variant="ghost"
                     onClick={handleLogout}
-                    className="w-full justify-start gap-3 h-10 text-gray-600 hover:bg-red-50 hover:text-red-700 hover:border-red-100 border border-transparent transition-all"
+                    title={isCollapsed ? "Sair" : undefined}
+                    className={cn(
+                        "justify-start transition-all hover:bg-red-50 hover:text-red-700 hover:border-red-100 border border-transparent",
+                        isCollapsed ? "h-10 w-10 p-0 justify-center rounded-lg" : "w-full gap-3 h-11 px-3"
+                    )}
                 >
-                    <LogOut className="size-4.5" />
-                    <span className="text-sm font-medium">Sair</span>
+                    <LogOut className={cn("text-gray-500", isCollapsed ? "size-5" : "size-4.5")} />
+                    {!isCollapsed && <span className="text-sm font-medium text-gray-600">Sair do Sistema</span>}
                 </Button>
             </div>
         </aside>

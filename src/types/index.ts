@@ -14,6 +14,14 @@ export interface Restaurant {
   logo_url: string | null
   whatsapp_number: string | null
   address: string | null
+  // Detailed address fields
+  address_cep?: string | null
+  address_street?: string | null
+  address_number?: string | null
+  address_complement?: string | null
+  address_neighborhood?: string | null
+  address_city?: string | null
+  address_state?: string | null
   opening_hours: {
     [key: string]: {
       open: string
@@ -22,6 +30,7 @@ export interface Restaurant {
     }
   } | null
   delivery_fee: number
+  minimum_order_value?: number
   is_open: boolean
   subscription_status: 'active' | 'trialing' | 'past_due' | 'canceled'
   stripe_customer_id: string | null
