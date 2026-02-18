@@ -88,7 +88,13 @@ export default function OrdersBoard({ initialOrders, restaurantId }: OrdersBoard
             </div>
             <div className="flex gap-6 min-w-[1200px] h-full">
                 {columns.map(col => {
-                    const colOrders = orders.filter((o: any) => (o.status || 'pending') === col.id)
+                    const colOrders = orders.filter((o: any) => {
+                        const status = o.status || 'pending'
+                        if (col.id === 'pending') {
+                            return status === 'pending' || status === 'new'
+                        }
+                        return status === col.id
+                    })
                     return (
                         <div key={col.id} className="flex-1 bg-gray-100/50 rounded-2xl border border-gray-200/60 p-4 flex flex-col h-[calc(100vh-180px)] shadow-inner">
                             <div className={`mb-4 px-4 py-3 rounded-xl font-bold flex justify-between items-center shadow-sm ${col.color}`}>
