@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import {
     Plus,
@@ -56,6 +57,10 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
             allows_half_and_half: product?.allows_half_and_half ?? false,
             option_groups: product?.product_option_groups?.map(g => ({
                 ...g,
+                type: g.type ?? 'single',
+                min_selection: g.min_selection ?? 0,
+                max_selection: g.max_selection ?? 1,
+                price_rule: g.price_rule ?? 'sum',
                 options: g.product_options || []
             })) || []
         }
@@ -151,9 +156,9 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
     }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex min-h-0 flex-1 flex-col">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-4">
                 <h2 className="text-xl font-bold">{product ? 'Editar Produto' : 'Novo Produto'}</h2>
                 <p className="text-sm text-gray-500 mt-1">
                     {product ? 'Atualize as informações do produto' : 'Preencha os dados do novo produto'}
@@ -161,7 +166,7 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
             </div>
 
             {/* Form Content */}
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                 <div className="p-6 space-y-6">
                     {/* Basic Info */}
                     <div className="space-y-4">
@@ -310,9 +315,10 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                                 size="sm"
                                 onClick={() => appendGroup({
                                     name: '',
-                                    is_required: false,
-                                    min_selections: 0,
-                                    max_selections: 1,
+                                    type: 'single' as const,
+                                    min_selection: 0,
+                                    max_selection: 1,
+                                    price_rule: 'sum' as const,
                                     options: []
                                 })}
                             >
@@ -336,7 +342,7 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
             </form>
 
             {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 sticky bottom-0">
+            <div className="shrink-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
                 <div className="flex gap-3">
                     {product?.id && (
                         <Button
@@ -387,15 +393,14 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
 
 // Variation Group Component
 function VariationGroup({ groupIndex, form, onRemove }: any) {
-    const [isExpanded, setIsExpanded] = useState(true)
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: `option_groups.${groupIndex}.options`
     })
 
     return (
-        <div className="border border-gray-200 rounded-lg bg-white">
-            <div className="p-4 space-y-3">
+        <div className="min-w-0 border border-gray-200 rounded-lg bg-white">
+            <div className="min-w-0 p-4 space-y-3">
                 <div className="flex items-start gap-2">
                     <Input
                         {...form.register(`option_groups.${groupIndex}.name`, { required: true })}
@@ -413,15 +418,74 @@ function VariationGroup({ groupIndex, form, onRemove }: any) {
                     </Button>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm">
-                    <label className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            {...form.register(`option_groups.${groupIndex}.is_required`)}
-                            className="rounded"
-                        />
-                        <span className="text-gray-700">Obrigatório</span>
-                    </label>
+                <div className="min-w-0 space-y-3 rounded-lg border border-gray-100 bg-gray-50/90 p-3">
+                    <div className="min-w-0 space-y-1.5">
+                        <Label htmlFor={`og-${groupIndex}-type`} className="text-xs font-medium text-gray-700">
+                            Tipo de escolha
+                        </Label>
+                        <Select
+                            value={form.watch(`option_groups.${groupIndex}.type`) || 'single'}
+                            onValueChange={(value: 'single' | 'multiple') => {
+                                form.setValue(`option_groups.${groupIndex}.type`, value)
+                                if (value === 'single') {
+                                    form.setValue(`option_groups.${groupIndex}.max_selection`, 1)
+                                } else {
+                                    const cur = form.getValues(`option_groups.${groupIndex}.max_selection`)
+                                    if (!Number.isFinite(cur) || cur < 2) {
+                                        form.setValue(`option_groups.${groupIndex}.max_selection`, 3)
+                                    }
+                                }
+                            }}
+                        >
+                            <SelectTrigger id={`og-${groupIndex}-type`} className="h-10 w-full min-w-0 max-w-full bg-white">
+                                <SelectValue placeholder="Selecione" className="truncate" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="single">Uma opção (ex.: tamanho)</SelectItem>
+                                <SelectItem value="multiple">Várias opções (ex.: adicionais)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="min-w-0 space-y-3 border-t border-gray-200/80 pt-3">
+                        <div className="flex w-full min-w-0 items-start gap-2.5">
+                            <Checkbox
+                                id={`og-${groupIndex}-required`}
+                                className="mt-0.5 shrink-0"
+                                checked={(form.watch(`option_groups.${groupIndex}.min_selection`) ?? 0) >= 1}
+                                onCheckedChange={(checked) =>
+                                    form.setValue(
+                                        `option_groups.${groupIndex}.min_selection`,
+                                        checked === true ? 1 : 0
+                                    )
+                                }
+                            />
+                            <Label
+                                htmlFor={`og-${groupIndex}-required`}
+                                className="min-w-0 flex-1 cursor-pointer text-sm font-normal leading-snug text-gray-800"
+                            >
+                                Escolha obrigatória
+                            </Label>
+                        </div>
+
+                        {form.watch(`option_groups.${groupIndex}.type`) === 'multiple' && (
+                            <div className="w-full min-w-0 space-y-1.5">
+                                <Label htmlFor={`og-${groupIndex}-max`} className="block text-xs font-medium text-gray-700">
+                                    Máximo de opções que o cliente pode marcar
+                                </Label>
+                                <Input
+                                    id={`og-${groupIndex}-max`}
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={1}
+                                    className="h-10 w-full min-w-0 bg-white"
+                                    {...form.register(`option_groups.${groupIndex}.max_selection`, {
+                                        valueAsNumber: true
+                                    })}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <Separator />

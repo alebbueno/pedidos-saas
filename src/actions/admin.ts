@@ -126,15 +126,46 @@ export async function upsertProduct(product: ProductInput) {
 
     // Insert new structure
     for (const group of product.option_groups) {
+        const g = group as Record<string, unknown>
+        const type =
+            g.type === 'single' || g.type === 'multiple'
+                ? g.type
+                : 'single'
+        const minSelection =
+            typeof g.min_selection === 'number'
+                ? g.min_selection
+                : typeof g.min_selections === 'number'
+                  ? (g.min_selections as number)
+                  : g.is_required
+                    ? 1
+                    : 0
+        let maxSelection =
+            typeof g.max_selection === 'number' && Number.isFinite(g.max_selection)
+                ? g.max_selection
+                : typeof g.max_selections === 'number' && Number.isFinite(g.max_selections as number)
+                  ? (g.max_selections as number)
+                  : type === 'multiple'
+                    ? Math.max(minSelection, 2)
+                    : 1
+        if (!Number.isFinite(maxSelection)) {
+            maxSelection = type === 'multiple' ? Math.max(minSelection, 2) : 1
+        }
+        const priceRule =
+            g.price_rule === 'sum' ||
+            g.price_rule === 'highest' ||
+            g.price_rule === 'average'
+                ? g.price_rule
+                : 'sum'
+
         const { data: savedGroup, error: groupError } = await supabase
             .from('product_option_groups')
             .insert({
                 product_id: savedProduct.id,
                 name: group.name,
-                type: group.type,
-                min_selection: group.min_selection,
-                max_selection: group.max_selection,
-                price_rule: group.price_rule
+                type,
+                min_selection: minSelection,
+                max_selection: Math.max(minSelection, maxSelection),
+                price_rule: priceRule
             } as any)
             .select()
             .single()

@@ -349,7 +349,10 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
 
             {/* Product Sheet (Side Drawer) */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent side="right" className="w-full sm:w-[600px] overflow-y-auto p-0">
+                <SheetContent
+                    side="right"
+                    className="flex h-full min-h-0 w-full max-w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(100vw,640px)] sm:w-[min(100vw,640px)]"
+                >
                     <SheetHeader className="sr-only">
                         <SheetTitle>{selectedProduct ? 'Editar Produto' : 'Novo Produto'}</SheetTitle>
                     </SheetHeader>
