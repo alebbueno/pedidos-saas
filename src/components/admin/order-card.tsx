@@ -13,6 +13,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Eye } from 'lucide-react'
+import { getPaymentMethodLabel } from '@/lib/payment-method-label'
 
 export default function OrderCard({ order }: { order: any }) {
     const handleStatus = async (status: string) => {
@@ -29,7 +30,7 @@ export default function OrderCard({ order }: { order: any }) {
                 </div>
                 <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Pagamento</h4>
-                    <p className="text-gray-600 bg-gray-100 inline-block px-2 py-1 rounded text-xs uppercase">{order.payment_method}</p>
+                    <p className="text-gray-600 bg-gray-100 inline-block px-2 py-1 rounded text-xs">{getPaymentMethodLabel(order.payment_method)}</p>
                 </div>
                 {order.delivery_type === 'delivery' && (
                     <div className="col-span-2">
@@ -129,7 +130,7 @@ export default function OrderCard({ order }: { order: any }) {
                 </CardHeader>
                 <CardContent className="p-4 pt-1 text-sm space-y-3">
                     <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-gray-50 p-2 rounded-lg">
-                        <span className="uppercase">{order.payment_method}</span>
+                        <span>{getPaymentMethodLabel(order.payment_method)}</span>
                         <span className="text-gray-300">•</span>
                         <span className={order.delivery_type === 'delivery' ? 'text-orange-600' : 'text-blue-600'}>
                             {order.delivery_type === 'delivery' ? '🛵 Envio' : '🥡 Retirada'}

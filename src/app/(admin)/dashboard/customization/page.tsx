@@ -7,11 +7,11 @@ export default async function CustomizationPage() {
     if (!restaurant) redirect('/onboarding')
 
     return (
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-5 sm:space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold">Personalização da vitrine</h1>
-                <p className="text-gray-500 mt-1">Customize a aparência da sua vitrine online</p>
+            <div className="min-w-0">
+                <h1 className="text-xl font-bold sm:text-2xl">Personalização da vitrine</h1>
+                <p className="mt-1 text-sm text-gray-500 sm:text-base">Customize a aparência da sua vitrine online</p>
             </div>
 
             <CustomizationClient restaurant={restaurant} />

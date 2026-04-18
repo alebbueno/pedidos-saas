@@ -17,6 +17,7 @@ import { Loader2, ArrowLeft, ArrowRight, User, MapPin, CreditCard, CheckCircle, 
 import StepIndicator from './step-indicator'
 import { cn } from '@/lib/utils'
 import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
+import { getPaymentMethodLabel } from '@/lib/payment-method-label'
 
 const STEPS = [
     { number: 1, title: 'Seus dados', description: 'Contato' },
@@ -241,7 +242,10 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
                     }
                 }).join('\\n')
 
-                const paymentText = paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'card_machine' ? 'Cartão na entrega ou retirada' : `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ''}`
+                const paymentText =
+                    paymentMethod === 'money' && changeFor
+                        ? `${getPaymentMethodLabel('money')} (troco para R$ ${changeFor})`
+                        : getPaymentMethodLabel(paymentMethod)
 
                 const message = `*Novo Pedido #${result.order.id.slice(0, 8)}*
 
@@ -582,8 +586,8 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                     >
                                         <RadioGroupItem value="card_machine" id="card" />
                                         <Label htmlFor="card" className="flex-1 cursor-pointer font-semibold">
-                                            Cartão
-                                            <p className="text-sm text-gray-500 font-normal">Cartão na maquininha no ato da entrega ou retirada</p>
+                                            Cartão na maquininha
+                                            <p className="text-sm text-gray-500 font-normal">No ato da entrega ou retirada</p>
                                         </Label>
                                     </div>
 
@@ -669,11 +673,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                         Pagamento
                                     </h4>
                                     <div className="bg-gray-50 p-4 rounded-lg space-y-1 text-sm">
-                                        <p><strong>Método:</strong> {
-                                            paymentMethod === 'pix' ? 'PIX' :
-                                                paymentMethod === 'card_machine' ? 'Cartão (Maquininha)' :
-                                                    'Dinheiro'
-                                        }</p>
+                                        <p><strong>Método:</strong> {getPaymentMethodLabel(paymentMethod)}</p>
                                         {paymentMethod === 'money' && changeFor && (
                                             <p><strong>Troco para:</strong> R$ {changeFor}</p>
                                         )}

@@ -19,14 +19,19 @@ export default async function DashboardPage() {
     ])
 
     return (
-        <div className="space-y-8 animate-fade-in-up">
+        <div className="min-w-0 space-y-5 animate-fade-in-up sm:space-y-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Bom dia, {restaurant.name} 👋</h1>
-                    <p className="text-gray-500 text-sm mt-1">Aqui está o resumo das suas vendas hoje.</p>
+            <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0">
+                    <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+                        Bom dia,{' '}
+                        <span className="text-orange-700">{restaurant.name}</span>
+                    </h1>
+                    <p className="mt-1.5 text-[15px] leading-relaxed text-gray-600 sm:text-sm sm:text-gray-500">
+                        Aqui está o resumo das suas vendas hoje.
+                    </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
                     <span className="text-xs text-gray-500 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full animate-pulse ${restaurant.is_open ? 'bg-green-500' : 'bg-red-500'}`}></span>
                         {restaurant.is_open ? 'Aberto para pedidos' : 'Fechado para novos pedidos'}
@@ -39,10 +44,10 @@ export default async function DashboardPage() {
             </div>
 
             {/* Stat Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {/* Total Orders */}
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all duration-200">
-                    <CardContent className="p-6">
+                <Card className="rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70 transition-shadow duration-200 hover:shadow-md max-md:shadow-md">
+                    <CardContent className="p-5 sm:p-6">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-gray-500 mb-1">Pedidos Hoje</p>
@@ -63,8 +68,8 @@ export default async function DashboardPage() {
                 </Card>
 
                 {/* Revenue */}
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all duration-200">
-                    <CardContent className="p-6">
+                <Card className="rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70 transition-shadow duration-200 hover:shadow-md max-md:shadow-md">
+                    <CardContent className="p-5 sm:p-6">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-gray-500 mb-1">Faturamento Hoje</p>
@@ -85,8 +90,8 @@ export default async function DashboardPage() {
                 </Card>
 
                 {/* Active Deliveries */}
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all duration-200">
-                    <CardContent className="p-6">
+                <Card className="rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70 transition-shadow duration-200 hover:shadow-md max-md:shadow-md">
+                    <CardContent className="p-5 sm:p-6">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-gray-500 mb-1">Envios em andamento</p>
@@ -106,8 +111,8 @@ export default async function DashboardPage() {
                 </Card>
 
                 {/* New Customers */}
-                <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all duration-200">
-                    <CardContent className="p-6">
+                <Card className="rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70 transition-shadow duration-200 hover:shadow-md max-md:shadow-md">
+                    <CardContent className="p-5 sm:p-6">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-gray-500 mb-1">Novos Clientes</p>
@@ -129,8 +134,8 @@ export default async function DashboardPage() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 border-none shadow-sm bg-white">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+                <Card className="rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70 lg:col-span-2">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-base font-semibold text-gray-900">Visão Geral de Vendas</CardTitle>
                         <select className="px-3 py-1 bg-gray-50 border-none rounded-md text-xs text-gray-600 font-medium cursor-pointer hover:bg-gray-100 transition-colors focus:ring-0">
@@ -152,7 +157,7 @@ export default async function DashboardPage() {
                 </Card>
 
                 {/* Popular Items / Live Activity */}
-                <Card className="border-none shadow-sm bg-white">
+                <Card className="rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base font-semibold text-gray-900">Atividade Recente</CardTitle>
                     </CardHeader>
@@ -186,26 +191,26 @@ export default async function DashboardPage() {
             </div>
 
             {/* Recent Orders List */}
-            <Card className="border-none shadow-sm bg-white overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between bg-white border-b border-gray-50 px-6 py-4">
+            <Card className="overflow-hidden rounded-2xl border-none bg-white shadow-sm ring-1 ring-stone-200/70">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3.5 sm:px-6 sm:py-4">
                     <CardTitle className="text-base font-semibold text-gray-900">Pedidos Recentes</CardTitle>
-                    <Link href="/dashboard/orders">
-                        <Button variant="ghost" size="sm" className="text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                    <Link href="/dashboard/orders" className="cursor-pointer">
+                        <Button variant="ghost" size="sm" className="cursor-pointer text-xs text-amber-600 hover:bg-amber-50 hover:text-amber-700">
                             Ver todos
                             <ChevronRight className="w-3 h-3 ml-1" />
                         </Button>
                     </Link>
                 </CardHeader>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto pb-6 max-md:pb-8">
                     <table className="w-full">
                         <thead>
                             <tr className="bg-gray-50/50">
-                                <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</th>
-                                <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Horário</th>
-                                <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="text-left py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
-                                <th className="text-right py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ações</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">ID</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Cliente</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Horário</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Status</th>
+                                <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Total</th>
+                                <th className="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 sm:px-6 sm:py-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -227,33 +232,38 @@ export default async function DashboardPage() {
                                 }
 
                                 return (
-                                    <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="py-3 px-6 text-sm font-mono text-gray-600">#{order.id.slice(0, 6)}</td>
-                                        <td className="py-3 px-6 text-sm">
+                                    <tr key={order.id} className="transition-colors hover:bg-gray-50/50">
+                                        <td className="px-3 py-2.5 font-mono text-sm text-gray-600 sm:px-6 sm:py-3">#{order.id.slice(0, 6)}</td>
+                                        <td className="px-3 py-2.5 text-sm sm:px-6 sm:py-3">
                                             <div className="font-medium text-gray-900">{order.customer?.name || 'Cliente'}</div>
                                             <div className="text-xs text-gray-500">{order.customer?.phone}</div>
                                         </td>
-                                        <td className="py-3 px-6 text-sm text-gray-500">
+                                        <td className="px-3 py-2.5 text-sm text-gray-500 sm:px-6 sm:py-3">
                                             {new Date(order.created_at).toLocaleTimeString('pt-BR', {
                                                 hour: '2-digit',
                                                 minute: '2-digit'
                                             })}
                                         </td>
-                                        <td className="py-3 px-6">
+                                        <td className="px-3 py-2.5 sm:px-6 sm:py-3">
                                             <Badge
-                                                className={`shadow-none font-medium border ${statusColors[order.status] || 'bg-gray-100 text-gray-700'}`}
+                                                className={`border font-medium shadow-none ${statusColors[order.status] || 'bg-gray-100 text-gray-700'}`}
                                                 variant="secondary"
                                             >
                                                 {statusLabels[order.status] || order.status}
                                             </Badge>
                                         </td>
-                                        <td className="py-3 px-6 text-sm font-medium text-gray-900">
+                                        <td className="px-3 py-2.5 text-sm font-medium text-gray-900 sm:px-6 sm:py-3">
                                             R$ {Number(order.total_amount).toFixed(2)}
                                         </td>
-                                        <td className="py-3 px-6 text-right">
-                                            <Link href={`/dashboard/orders?id=${order.id}`}>
-                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                                        <td className="px-3 py-2.5 text-right sm:px-6 sm:py-3">
+                                            <Link href={`/dashboard/orders?id=${order.id}`} className="inline-flex cursor-pointer">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-11 min-h-[44px] w-11 min-w-[44px] cursor-pointer p-0 sm:h-8 sm:min-h-0 sm:w-8 sm:min-w-0"
+                                                    aria-label="Ver pedido"
+                                                >
+                                                    <ChevronRight className="h-4 w-4 text-gray-400" />
                                                 </Button>
                                             </Link>
                                         </td>

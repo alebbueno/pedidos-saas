@@ -71,8 +71,8 @@ export default function OrdersBoard({ initialOrders, restaurantId }: OrdersBoard
     ]
 
     return (
-        <div className="flex-1 overflow-x-auto pb-4">
-            <div className="flex justify-end px-4 mb-2">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="mb-2 flex shrink-0 justify-end px-0 sm:px-1">
                 <button
                     onClick={() => {
                         const audio = new Audio('/sounds/ching.mp3')
@@ -86,7 +86,8 @@ export default function OrdersBoard({ initialOrders, restaurantId }: OrdersBoard
                     Testar Som
                 </button>
             </div>
-            <div className="flex gap-6 min-w-[1200px] h-full">
+            <div className="min-h-0 min-w-0 flex-1 overflow-x-auto pb-4 [-webkit-overflow-scrolling:touch] max-md:pb-28">
+                <div className="flex h-full min-h-[min(440px,calc(100dvh-18.5rem))] min-w-[1100px] gap-4 px-0 sm:min-h-[min(480px,calc(100dvh-17.5rem))] sm:min-w-[1200px] sm:gap-6 md:min-h-[calc(100vh-11rem)] lg:min-h-[calc(100vh-10rem)]">
                 {columns.map(col => {
                     const colOrders = orders.filter((o: any) => {
                         const status = o.status || 'pending'
@@ -96,7 +97,7 @@ export default function OrdersBoard({ initialOrders, restaurantId }: OrdersBoard
                         return status === col.id
                     })
                     return (
-                        <div key={col.id} className="flex-1 bg-gray-100/50 rounded-2xl border border-gray-200/60 p-4 flex flex-col h-[calc(100vh-180px)] shadow-inner">
+                        <div key={col.id} className="flex h-full min-h-0 min-w-[220px] flex-1 flex-col rounded-2xl border border-gray-200/60 bg-gray-100/50 p-3 shadow-inner sm:p-4">
                             <div className={`mb-4 px-4 py-3 rounded-xl font-bold flex justify-between items-center shadow-sm ${col.color}`}>
                                 <span>{col.label}</span>
                                 <span className="bg-white/30 px-2 py-0.5 rounded text-sm text-inherit">{colOrders.length}</span>
@@ -114,6 +115,7 @@ export default function OrdersBoard({ initialOrders, restaurantId }: OrdersBoard
                         </div>
                     )
                 })}
+                </div>
             </div>
         </div>
     )

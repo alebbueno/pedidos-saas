@@ -172,10 +172,10 @@ export function MenuManager({ restaurantId, restaurantSegment, initialProducts, 
     }
 
     return (
-        <div className="flex gap-6">
+        <div className="flex min-w-0 flex-col gap-6 max-md:pb-6 lg:flex-row lg:gap-8">
             {/* Left Sidebar - Categories */}
-            <aside className="w-64 flex-shrink-0">
-                <Card className="sticky top-6 bg-white">
+            <aside className="w-full shrink-0 lg:w-64">
+                <Card className="bg-white lg:sticky lg:top-6">
                     <CardHeader className="pb-3 border-b border-gray-100">
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-base font-semibold">Categorias</CardTitle>
@@ -282,10 +282,10 @@ export function MenuManager({ restaurantId, restaurantSegment, initialProducts, 
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 min-w-0">
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">
+            <main className="min-w-0 flex-1">
+                <div className="mb-6 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
                             {selectedCategory === 'all'
                                 ? 'Todos os Produtos'
                                 : categories.find(c => c.id === selectedCategory)?.name || 'Produtos'}
@@ -294,7 +294,7 @@ export function MenuManager({ restaurantId, restaurantSegment, initialProducts, 
                             ({filteredProducts.length})
                         </p>
                     </div>
-                    <Button onClick={handleNewProduct} className="bg-orange-500 hover:bg-orange-600">
+                    <Button onClick={handleNewProduct} className="w-full shrink-0 bg-orange-500 hover:bg-orange-600 sm:w-auto">
                         <Plus className="w-4 h-4 mr-2" />
                         Novo Produto
                     </Button>

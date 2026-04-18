@@ -9,6 +9,7 @@ import { Loader2, Package, Clock, CheckCircle, XCircle, MapPin, ArrowLeft, Truck
 import { useRouter } from 'next/navigation'
 import { Restaurant } from '@/types'
 import { getRestaurantBySlug } from '@/actions/restaurant'
+import { getPaymentMethodLabel } from '@/lib/payment-method-label'
 
 export default function MyOrdersPage({ params }: { params: Promise<{ slug: string }> }) {
     const router = useRouter()
@@ -283,8 +284,7 @@ export default function MyOrdersPage({ params }: { params: Promise<{ slug: strin
                                             <div>
                                                 <p className="text-xs text-gray-500 mb-1">Pagamento</p>
                                                 <p className="font-semibold text-gray-900">
-                                                    {order.payment_method === 'pix' ? '💳 PIX' :
-                                                        order.payment_method === 'card_machine' ? '💳 Cartão' : '💵 Dinheiro'}
+                                                    {getPaymentMethodLabel(order.payment_method)}
                                                 </p>
                                             </div>
                                         </div>

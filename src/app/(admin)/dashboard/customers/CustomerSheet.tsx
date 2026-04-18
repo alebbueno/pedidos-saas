@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { getPaymentMethodLabel } from '@/lib/payment-method-label'
 
 interface CustomerSheetProps {
     customerId: string | null
@@ -195,8 +196,7 @@ export function CustomerSheet({ customerId, onClose }: CustomerSheetProps) {
                                                                 R$ {Number(order.total_amount).toFixed(2).replace('.', ',')}
                                                             </div>
                                                             <div className="text-xs text-gray-500 mt-1 font-medium">
-                                                                {order.payment_method === 'card' ? '💳 Cartão' :
-                                                                    order.payment_method === 'pix' ? '📱 Pix' : '💵 Dinheiro'}
+                                                                {getPaymentMethodLabel(order.payment_method)}
                                                             </div>
                                                         </div>
                                                     </div>

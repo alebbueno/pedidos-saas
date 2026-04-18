@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, ShoppingBag, LayoutGrid, Settings, LogOut, Users, Palette, ChevronLeft, ChevronRight, Store, Loader2 } from 'lucide-react'
+import { LogOut, ChevronLeft, ChevronRight, Store, Loader2 } from 'lucide-react'
+import { DASHBOARD_NAV_ITEMS, isDashboardNavActive } from '@/lib/dashboard-nav'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
@@ -35,15 +36,6 @@ export function Sidebar({
     useEffect(() => {
         setStoreOpen(initialStoreOpen)
     }, [initialStoreOpen])
-
-    const navItems = [
-        { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
-        { href: '/dashboard/orders', label: 'Pedidos', icon: ShoppingBag },
-        { href: '/dashboard/menu', label: 'Catálogo', icon: LayoutGrid },
-        { href: '/dashboard/customers', label: 'Clientes', icon: Users },
-        { href: '/dashboard/customization', label: 'Personalização', icon: Palette },
-        { href: '/dashboard/settings', label: 'Configurações', icon: Settings },
-    ]
 
     const router = useRouter()
     const supabase = createClient()
@@ -166,9 +158,9 @@ export function Sidebar({
 
             {/* Navigation */}
             <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto scrollbar-hide">
-                {navItems.map((item) => {
+                {DASHBOARD_NAV_ITEMS.map((item) => {
                     const Icon = item.icon
-                    const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+                    const isActive = isDashboardNavActive(pathname, item.href)
 
                     return (
                         <Link key={item.href} href={item.href} className="block group">

@@ -322,14 +322,14 @@ export default function SettingsClient({
     ]
 
     return (
-        <div className="min-h-screen bg-slate-50 -m-6 p-6">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="min-w-0 pb-4 md:pb-8">
+            <div className="mx-auto w-full max-w-7xl space-y-6 md:space-y-8">
                 {/* Header */}
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-extrabold text-slate-900">Configurações</h1>
-                    <p className="text-slate-600 text-lg flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-orange-500" />
-                        Gerencie as configurações da sua loja
+                <div className="min-w-0 space-y-2">
+                    <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">Configurações</h1>
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-base text-slate-600 sm:text-lg">
+                        <Sparkles className="size-5 shrink-0 text-orange-500" />
+                        <span>Gerencie as configurações da sua loja</span>
                     </p>
                 </div>
 
@@ -368,7 +368,7 @@ export default function SettingsClient({
                                     aplicável), taxa de envio no fluxo e o estilo do painel de pedidos.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6 px-8 pb-8">
+                            <CardContent className="space-y-6 px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {BUSINESS_SEGMENT_OPTIONS.map((opt) => (
                                         <button
@@ -450,7 +450,7 @@ export default function SettingsClient({
                                     Dados básicos que aparecem na página pública da loja
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6 px-8 pb-8">
+                            <CardContent className="space-y-6 px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="md:col-span-2">
                                         <Label htmlFor="name" className="text-slate-700 font-medium text-base">
@@ -656,7 +656,7 @@ export default function SettingsClient({
                                     Configure taxas de envio e formas de pagamento aceitas
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6 px-8 pb-8">
+                            <CardContent className="space-y-6 px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
                                         <Label htmlFor="delivery_fee" className="text-slate-700 font-medium text-base">
@@ -789,7 +789,7 @@ export default function SettingsClient({
                                     </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-3 px-8 pb-8">
+                            <CardContent className="space-y-3 px-4 pb-6 sm:px-6 md:px-8 md:pb-8">
                                 {daysMap.map((item) => (
                                     <div
                                         key={item.key}

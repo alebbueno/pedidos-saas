@@ -33,9 +33,9 @@ export function CustomersClient({ restaurantId, initialCustomers }: CustomersCli
     }, 500)
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+        <div className="min-w-0 space-y-5 sm:space-y-6">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Clientes</h1>
                 <div className="relative w-full sm:w-72">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
