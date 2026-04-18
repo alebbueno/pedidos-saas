@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, ShoppingBag, LayoutGrid, Settings, LogOut, Users, Palette, Bot, ChevronLeft, ChevronRight, Store, Loader2 } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, LayoutGrid, Settings, LogOut, Users, Palette, ChevronLeft, ChevronRight, Store, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
@@ -41,7 +41,6 @@ export function Sidebar({
         { href: '/dashboard/orders', label: 'Pedidos', icon: ShoppingBag },
         { href: '/dashboard/menu', label: 'Catálogo', icon: LayoutGrid },
         { href: '/dashboard/customers', label: 'Clientes', icon: Users },
-        { href: '/dashboard/agent-config', label: 'Agente IA', icon: Bot },
         { href: '/dashboard/customization', label: 'Personalização', icon: Palette },
         { href: '/dashboard/settings', label: 'Configurações', icon: Settings },
     ]
