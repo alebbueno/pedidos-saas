@@ -20,12 +20,12 @@ export function HeroNew() {
                         </div>
 
                         <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
-                            Seu delivery próprio, <br />
-                            <span className="text-[#FF3B30]">sem taxas</span> e direto no WhatsApp
+                            Suas vendas no WhatsApp, <br />
+                            <span className="text-[#FF3B30]">sem taxas</span> por pedido
                         </h1>
 
                         <p className="text-xl text-slate-600 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                            Crie seu cardápio digital, receba pedidos online e automatize o atendimento do seu restaurante em poucos minutos.
+                            Monte seu catálogo online, receba pedidos e organize o atendimento do seu negócio em poucos minutos — de alimentação a moda, artesanato ou varejo.
                         </p>
 
                         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -48,7 +48,7 @@ export function HeroNew() {
                         <div className="relative z-10 w-full aspect-square bg-orange-50 rounded-full overflow-hidden flex items-center justify-center border-4 border-white shadow-2xl">
                             <div className="text-center p-8">
                                 <span className="text-8xl">🚀</span>
-                                <p className="mt-4 text-slate-400 font-medium text-lg">Imagem do Produto/Entregador</p>
+                                <p className="mt-4 text-slate-400 font-medium text-lg">Seu catálogo no celular do cliente</p>
                             </div>
                         </div>
 

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { Restaurant, Category, Product } from '@/types'
+import { getRestaurantOrderingStatus } from '@/lib/opening-hours'
 
 export async function getRestaurantBySlug(slug: string) {
     const supabase = await createClient()
@@ -20,7 +21,7 @@ export async function getRestaurantBySlug(slug: string) {
     return restaurant as Restaurant
 }
 
-export async function getMenu(restaurantId: string) {
+export async function getMenu(restaurantId: string, opts?: { includeInactive?: boolean }) {
     const supabase = await createClient()
 
     // Fetch Categories
@@ -34,7 +35,7 @@ export async function getMenu(restaurantId: string) {
 
     // Fetch Products with Option Groups and Options
     // Note: Supabase query for deep nesting
-    const { data: products, error: prodError } = await supabase
+    let prodQuery = supabase
         .from('products')
         .select(`
       *,
@@ -44,7 +45,12 @@ export async function getMenu(restaurantId: string) {
       )
     `)
         .eq('restaurant_id', restaurantId)
-        .eq('is_active', true)
+
+    if (!opts?.includeInactive) {
+        prodQuery = prodQuery.eq('is_active', true)
+    }
+
+    const { data: products, error: prodError } = await prodQuery
 
     if (prodError) console.error('Error products:', prodError)
 
@@ -56,6 +62,24 @@ export async function getMenu(restaurantId: string) {
 
 export async function createOrder(orderData: any) {
     const supabase = await createClient()
+
+    const { data: hoursRow } = await supabase
+        .from('restaurants')
+        .select('opening_hours, is_open')
+        .eq('id', orderData.restaurantId)
+        .maybeSingle()
+
+    const row = hoursRow as { opening_hours: Restaurant['opening_hours']; is_open: boolean } | null
+    const ordering = getRestaurantOrderingStatus(
+        row?.opening_hours ?? null,
+        new Date(),
+        row?.is_open
+    )
+    if (!ordering.acceptingOrders) {
+        return {
+            error: `${ordering.headline}. ${ordering.detail}`,
+        }
+    }
 
     // Use the customerId from orderData (already created in checkout)
     const customerId = orderData.customerId

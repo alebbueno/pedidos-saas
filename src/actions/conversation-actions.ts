@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCustomerByPhone } from '@/actions/customer'
 
 export interface Conversation {
     id: string
@@ -83,83 +84,16 @@ export async function getOrCreateConversation(
     let finalCustomerId = customerId
 
     if (!finalCustomerId) {
-        // Extract clean phone number (remove restaurantId suffix if present)
-        // The phoneNumber might be in format: "5511965671180-restaurantId"
         let phoneToSearch = phoneNumber
         if (phoneNumber.includes('-')) {
-            // Extract the phone part before the first hyphen
             phoneToSearch = phoneNumber.split('-')[0]
         }
-        
-        // Normalize phone number: remove all non-digit characters
         const normalizedPhone = phoneToSearch.replace(/\D/g, '')
-        console.log(`[Agent] Looking up customer by phone: ${phoneNumber} (extracted: ${phoneToSearch}, normalized: ${normalizedPhone})`)
-        
-        // Try multiple phone formats
-        const phoneVariations = [
-            normalizedPhone, // Original normalized
-            phoneToSearch, // Extracted phone (without restaurantId)
-            normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`, // With country code
-            normalizedPhone.startsWith('55') ? normalizedPhone.slice(2) : normalizedPhone, // Without country code
-        ].filter((v, i, arr) => arr.indexOf(v) === i) // Remove duplicates
-        
-        console.log(`[Agent] Trying phone variations:`, phoneVariations)
-        
-        let customer = null
-        
-        // Try each variation
-        for (const phoneVar of phoneVariations) {
-            // First try without restaurant_id (newer schema)
-            const { data: foundCustomer, error: error1 } = await supabase
-                .from('customers')
-                .select('id, restaurant_id, phone')
-                .eq('phone', phoneVar)
-                .maybeSingle()
-            
-            if (error1 && error1.code !== 'PGRST116') {
-                console.error(`[Agent] Error searching customer with phone ${phoneVar}:`, error1)
-            }
-            
-            if (foundCustomer) {
-                console.log(`[Agent] Found customer with phone variation ${phoneVar}:`, foundCustomer.id)
-                customer = foundCustomer
-                break
-            }
-            
-            // If not found, try with restaurant_id
-            const { data: foundWithRestaurant, error: error2 } = await supabase
-            .from('customers')
-                .select('id, phone')
-            .eq('restaurant_id', restaurantId)
-                .eq('phone', phoneVar)
-                .maybeSingle()
-            
-            if (error2 && error2.code !== 'PGRST116') {
-                console.error(`[Agent] Error searching customer with restaurant_id and phone ${phoneVar}:`, error2)
-            }
-            
-            if (foundWithRestaurant) {
-                console.log(`[Agent] Found customer with restaurant_id and phone variation ${phoneVar}:`, foundWithRestaurant.id)
-                customer = foundWithRestaurant
-                break
-            }
-        }
 
-        if (customer) {
-            console.log(`[Agent] Found existing customer: ${customer.id} (phone in DB: ${customer.phone})`)
+        const { success, customer } = await getCustomerByPhone(normalizedPhone, restaurantId)
+
+        if (success && customer) {
             finalCustomerId = customer.id
-        } else {
-            console.log(`[Agent] No existing customer found for phone: ${phoneNumber} (tried variations: ${phoneVariations.join(', ')})`)
-            
-            // Debug: Check what customers exist in the database
-            const { data: allCustomers, error: debugError } = await supabase
-                .from('customers')
-                .select('id, phone, name')
-                .limit(10)
-            
-            if (!debugError && allCustomers) {
-                console.log(`[Agent] Sample customers in DB:`, allCustomers.map(c => ({ phone: c.phone, name: c.name })))
-            }
         }
     }
 

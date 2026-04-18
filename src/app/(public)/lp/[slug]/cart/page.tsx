@@ -12,6 +12,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import CustomerNavbar from '@/components/public/customer-navbar'
+import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
+import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
 
 interface CartPageProps {
     params: Promise<{ slug: string }>
@@ -21,6 +23,10 @@ export default function CartPage({ params }: CartPageProps) {
     const router = useRouter()
     const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
     const [slug, setSlug] = useState<string>('')
+
+    const ordering = useRestaurantOrderingOpen(
+        restaurant ?? { opening_hours: null, is_open: true }
+    )
 
     const items = useCartStore((state) => state.items)
     const removeItem = useCartStore((state) => state.removeItem)
@@ -80,20 +86,21 @@ export default function CartPage({ params }: CartPageProps) {
                             Carrinho vazio
                         </h2>
                         <p className="text-gray-500 mb-6 text-center">
-                            Adicione produtos do cardápio para começar seu pedido
+                            Adicione produtos ao carrinho para começar seu pedido
                         </p>
                         <Link href={`/lp/${slug}`}>
                             <Button
                                 className="rounded-full px-8 font-bold shadow-lg hover:shadow-xl transition-all text-white"
                                 style={{ backgroundColor: primaryColor }}
                             >
-                                Ver Cardápio
+                                Continuar comprando
                             </Button>
                         </Link>
                     </div>
                 ) : (
                     // Items List
                     <div className="space-y-6">
+                        <ClosedStoreBanner restaurant={restaurant} />
                         <div className="space-y-3">
                             {items.map((item, index) => (
                                 <Card
@@ -244,7 +251,7 @@ export default function CartPage({ params }: CartPageProps) {
                                     <span className="font-semibold">R$ {subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Taxa de entrega</span>
+                                    <span className="text-gray-600">Taxa de envio</span>
                                     <span className="font-semibold">
                                         {deliveryFee > 0 ? `R$ ${deliveryFee.toFixed(2)}` : 'Grátis'}
                                     </span>
@@ -269,10 +276,17 @@ export default function CartPage({ params }: CartPageProps) {
                     <div className="container mx-auto px-4 py-4 max-w-2xl">
                         <Button
                             className="w-full h-14 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all text-white flex items-center justify-between px-6"
-                            style={{ backgroundColor: primaryColor }}
-                            onClick={() => router.push(`/lp/${slug}/checkout`)}
+                            style={{
+                                backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
+                            }}
+                            disabled={!ordering.acceptingOrders}
+                            onClick={() => {
+                                if (ordering.acceptingOrders) {
+                                    router.push(`/lp/${slug}/checkout`)
+                                }
+                            }}
                         >
-                            <span>Finalizar Pedido</span>
+                            <span>{ordering.acceptingOrders ? 'Finalizar Pedido' : 'Fora do horário'}</span>
                             <span className="text-lg">R$ {totalAmount.toFixed(2)}</span>
                         </Button>
                     </div>

@@ -148,7 +148,7 @@ export async function POST(req: Request) {
             })
 
             const { getCustomerByPhone } = await import('@/actions/customer')
-            const { success, customer, error: customerError } = await getCustomerByPhone(phoneToSearch)
+            const { success, customer, error: customerError } = await getCustomerByPhone(phoneToSearch, restaurantId)
 
             if (customerError) {
                 console.error('[Agent] Error finding customer:', customerError)

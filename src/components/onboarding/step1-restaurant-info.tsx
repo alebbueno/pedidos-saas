@@ -3,45 +3,110 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Store, Link as LinkIcon, Phone, MapPin, Lightbulb, Loader2 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Store, Link as LinkIcon, Phone, MapPin, Lightbulb, Loader2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { IMaskInput } from 'react-imask'
+import type { BusinessSegment } from '@/types'
+import { BUSINESS_SEGMENT_OPTIONS } from '@/lib/segment-options'
+import { cn } from '@/lib/utils'
+import { slugifyFromName, isValidPublicSlug } from '@/lib/slug'
+import { checkSlugAvailability } from '@/actions/onboarding-actions'
 
-interface Step1Props {
-    data: {
-        name: string
-        slug: string
-        whatsapp: string
-        description: string
-        // Address fields
-        cep: string
-        street: string
-        number: string
-        complement: string
-        neighborhood: string
-        city: string
-        state: string
-    }
-    onChange: (data: any) => void
+export type Step1RestaurantData = {
+    segment: BusinessSegment
+    name: string
+    slug: string
+    whatsapp: string
+    description: string
+    cep: string
+    street: string
+    number: string
+    complement: string
+    neighborhood: string
+    city: string
+    state: string
 }
 
-export function Step1RestaurantInfo({ data, onChange }: Step1Props) {
-    const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null)
+interface Step1Props {
+    data: Step1RestaurantData
+    onChange: (data: Step1RestaurantData) => void
+    /** true = slug livre e formato ok; false = inválido ou em uso; null = vazio ou verificando */
+    onSlugValidityChange?: (valid: boolean | null) => void
+}
+
+export function Step1RestaurantInfo({ data, onChange, onSlugValidityChange }: Step1Props) {
+    /** Enquanto true, o slug acompanha o nome automaticamente. */
+    const [slugAuto, setSlugAuto] = useState(true)
+    const [slugChecking, setSlugChecking] = useState(false)
+    const [slugTaken, setSlugTaken] = useState(false)
+    const checkSeq = useRef(0)
     const [loadingCep, setLoadingCep] = useState(false)
     const [mapUrl, setMapUrl] = useState('')
 
-    // Auto-generate slug from name
-    useEffect(() => {
-        if (data.name && !data.slug) {
-            const autoSlug = data.name
-                .toLowerCase()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '')
-            onChange({ ...data, slug: autoSlug })
+    const reportSlugValidity = useCallback(
+        (v: boolean | null) => {
+            onSlugValidityChange?.(v)
+        },
+        [onSlugValidityChange]
+    )
+
+    const handleNameChange = (name: string) => {
+        const next: Step1RestaurantData = { ...data, name }
+        if (slugAuto) {
+            next.slug = slugifyFromName(name)
         }
-    }, [data.name])
+        onChange(next)
+    }
+
+    const handleSlugChange = (raw: string) => {
+        setSlugAuto(false)
+        onChange({ ...data, slug: slugifyFromName(raw) })
+    }
+
+    const resyncSlugFromName = () => {
+        setSlugAuto(true)
+        onChange({ ...data, slug: slugifyFromName(data.name) })
+    }
+
+    useEffect(() => {
+        const slug = data.slug.trim().toLowerCase()
+        if (!slug) {
+            setSlugChecking(false)
+            setSlugTaken(false)
+            reportSlugValidity(null)
+            return
+        }
+        if (!isValidPublicSlug(slug)) {
+            setSlugChecking(false)
+            setSlugTaken(false)
+            reportSlugValidity(false)
+            return
+        }
+
+        const seq = ++checkSeq.current
+        setSlugChecking(true)
+        reportSlugValidity(null)
+
+        const t = window.setTimeout(async () => {
+            try {
+                const { available } = await checkSlugAvailability(slug)
+                if (seq !== checkSeq.current) return
+                setSlugTaken(!available)
+                reportSlugValidity(available)
+            } catch {
+                if (seq !== checkSeq.current) return
+                setSlugTaken(false)
+                reportSlugValidity(null)
+            } finally {
+                if (seq === checkSeq.current) setSlugChecking(false)
+            }
+        }, 400)
+
+        return () => {
+            clearTimeout(t)
+        }
+    }, [data.slug, reportSlugValidity])
 
     // Fetch address from CEP
     const fetchAddressFromCep = async (cep: string) => {
@@ -94,8 +159,39 @@ export function Step1RestaurantInfo({ data, onChange }: Step1Props) {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 mb-4">
                     <Store className="w-8 h-8 text-orange-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900">Informações do Restaurante</h2>
+                <h2 className="text-3xl font-bold text-slate-900">Informações da sua loja</h2>
                 <p className="text-slate-600 text-lg">Vamos começar com as informações básicas do seu negócio</p>
+            </div>
+
+            {/* Segmento */}
+            <div className="space-y-3">
+                <Label className="text-slate-800 font-semibold text-base">Qual o tipo do seu negócio? *</Label>
+                <p className="text-sm text-slate-500">
+                    Ajusta o catálogo e o painel ao que você vende.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {BUSINESS_SEGMENT_OPTIONS.map((opt) => (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => onChange({ ...data, segment: opt.value })}
+                            className={cn(
+                                'rounded-2xl border-2 p-4 text-left transition-all hover:border-orange-300 hover:bg-orange-50/50',
+                                data.segment === opt.value
+                                    ? 'border-orange-500 bg-orange-50 shadow-md ring-2 ring-orange-200'
+                                    : 'border-slate-200 bg-white'
+                            )}
+                        >
+                            <div className="flex items-start gap-3">
+                                <span className="text-2xl" aria-hidden>{opt.emoji}</span>
+                                <div>
+                                    <div className="font-semibold text-slate-900">{opt.label}</div>
+                                    <div className="text-xs text-slate-500 mt-1">{opt.hint}</div>
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Tip Card */}
@@ -112,34 +208,81 @@ export function Step1RestaurantInfo({ data, onChange }: Step1Props) {
                 {/* Restaurant Name */}
                 <div className="space-y-2">
                     <Label htmlFor="name" className="text-slate-700 font-medium">
-                        Nome do Restaurante *
+                        Nome da loja ou marca *
                     </Label>
                     <Input
                         id="name"
-                        placeholder="Ex: Pizzaria Bella Napoli"
+                        placeholder="Ex: Bella Ateliê, Loja do João, Cantina Central"
                         value={data.name}
-                        onChange={(e) => onChange({ ...data, name: e.target.value })}
+                        onChange={(e) => handleNameChange(e.target.value)}
                         className="h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
                     />
                 </div>
 
                 {/* Slug */}
                 <div className="space-y-2">
-                    <Label htmlFor="slug" className="text-slate-700 font-medium">
-                        Link do Cardápio *
-                    </Label>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Label htmlFor="slug" className="text-slate-700 font-medium">
+                            Link da sua loja *
+                        </Label>
+                        {!slugAuto && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto py-1 px-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                onClick={resyncSlugFromName}
+                            >
+                                Gerar de novo a partir do nome
+                            </Button>
+                        )}
+                    </div>
                     <div className="relative">
                         <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <Input
                             id="slug"
-                            placeholder="pizzaria-bella-napoli"
+                            placeholder="sua-loja-aqui"
                             value={data.slug}
-                            onChange={(e) => onChange({ ...data, slug: e.target.value })}
-                            className="h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500 pl-10"
+                            onChange={(e) => handleSlugChange(e.target.value)}
+                            className={cn(
+                                'h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500 pl-10 pr-10',
+                                data.slug &&
+                                    !slugChecking &&
+                                    isValidPublicSlug(data.slug) &&
+                                    !slugTaken &&
+                                    'border-green-500 focus-visible:ring-green-500',
+                                data.slug && !slugChecking && (slugTaken || !isValidPublicSlug(data.slug)) &&
+                                    'border-red-400 focus-visible:ring-red-400'
+                            )}
                         />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {slugChecking && <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />}
+                            {!slugChecking && data.slug && isValidPublicSlug(data.slug) && !slugTaken && (
+                                <CheckCircle2 className="w-5 h-5 text-green-600" aria-hidden />
+                            )}
+                            {!slugChecking && slugTaken && <XCircle className="w-5 h-5 text-red-500" aria-hidden />}
+                            {!slugChecking && data.slug && !isValidPublicSlug(data.slug) && (
+                                <AlertCircle className="w-5 h-5 text-amber-500" aria-hidden />
+                            )}
+                        </div>
                     </div>
+                    {slugAuto && data.name.trim() && (
+                        <p className="text-xs text-slate-500">O link acompanha o nome. Edite o campo acima se quiser um endereço personalizado.</p>
+                    )}
+                    {data.slug && !isValidPublicSlug(data.slug) && (
+                        <p className="text-sm text-amber-700">
+                            Use de 2 a 80 caracteres: letras minúsculas, números e hífen (sem espaços no início ou fim).
+                        </p>
+                    )}
+                    {!slugChecking && data.slug && isValidPublicSlug(data.slug) && slugTaken && (
+                        <p className="text-sm text-red-600">Este link já está em uso. Altere o texto para um que ainda não exista.</p>
+                    )}
+                    {!slugChecking && data.slug && isValidPublicSlug(data.slug) && !slugTaken && (
+                        <p className="text-sm text-green-700">Link disponível.</p>
+                    )}
                     <p className="text-sm text-slate-500">
-                        Seu cardápio estará disponível em: <span className="font-medium text-orange-600">pedidos-saas.com/lp/{data.slug || 'seu-link'}</span>
+                        Sua vitrine online ficará em:{' '}
+                        <span className="font-medium text-orange-600">pedidos-saas.com/lp/{data.slug || 'seu-link'}</span>
                     </p>
                 </div>
 
@@ -166,17 +309,17 @@ export function Step1RestaurantInfo({ data, onChange }: Step1Props) {
                 {/* Description */}
                 <div className="space-y-2">
                     <Label htmlFor="description" className="text-slate-700 font-medium">
-                        Descrição do Restaurante
+                        Descrição da loja
                     </Label>
                     <Textarea
                         id="description"
-                        placeholder="Ex: Pizzaria artesanal com mais de 20 anos de tradição. Massa fina e crocante, ingredientes frescos e selecionados."
+                        placeholder="Ex: Loja física e envios em todo o Brasil. / Atendimento sob consulta e prazos na descrição do produto."
                         value={data.description}
                         onChange={(e) => onChange({ ...data, description: e.target.value })}
                         className="rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500 min-h-[100px]"
                     />
                     <p className="text-sm text-slate-500">
-                        Esta descrição aparecerá no seu cardápio online
+                        Esta descrição aparece na página pública da sua loja
                     </p>
                 </div>
 
@@ -185,7 +328,7 @@ export function Step1RestaurantInfo({ data, onChange }: Step1Props) {
                     <div className="flex items-center gap-2 mb-4">
                         <MapPin className="w-6 h-6 text-orange-600" />
                         <Label className="text-slate-700 font-medium text-lg">
-                            Endereço do Restaurante
+                            Endereço da loja
                         </Label>
                     </div>
 
@@ -329,8 +472,8 @@ export function Step1RestaurantInfo({ data, onChange }: Step1Props) {
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 rounded-2xl p-6">
                 <h3 className="font-semibold text-slate-900 mb-3">📋 Exemplo de preenchimento:</h3>
                 <div className="space-y-2 text-sm text-slate-700">
-                    <p><strong>Nome:</strong> Pizzaria Bella Napoli</p>
-                    <p><strong>Link:</strong> pizzaria-bella-napoli</p>
+                    <p><strong>Nome:</strong> Bella Ateliê</p>
+                    <p><strong>Link:</strong> bella-atelie</p>
                     <p><strong>WhatsApp:</strong> (11) 98765-4321</p>
                     <p><strong>Endereço:</strong> Av. Paulista, 1000 - Bela Vista, São Paulo - SP, 01310-100</p>
                 </div>

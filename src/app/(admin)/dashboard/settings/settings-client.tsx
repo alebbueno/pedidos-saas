@@ -1,7 +1,10 @@
 'use client'
 
-import { Restaurant } from '@/types'
-import { useState } from 'react'
+import { Restaurant, type BusinessSegment, type ProductType } from '@/types'
+import { BUSINESS_SEGMENT_OPTIONS } from '@/lib/segment-options'
+import { getSegmentRules } from '@/lib/segment-rules'
+import { cn } from '@/lib/utils'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,18 +14,26 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import {
     Store, Clock, Phone, Mail, MapPin, Globe, Save, Loader2, Check,
-    Truck, CreditCard, Sparkles, Copy, CheckCircle2, XCircle, ExternalLink
+    Truck, Sparkles, Copy, CheckCircle2, XCircle, ExternalLink, Tags,
 } from 'lucide-react'
 import {
     updateRestaurantInfo,
     updateDeliveryFee,
     updatePaymentMethods,
     updateOpeningHours,
-    updateStoreStatus
+    updateStoreStatus,
+    updateRestaurantSegment,
 } from '@/actions/settings'
 import { useRouter } from 'next/navigation'
 import { IMaskInput } from 'react-imask'
 import { toast } from 'sonner'
+
+const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+    simple: 'Simples',
+    customizable: 'Com opcionais',
+    variant: 'Com variações',
+    composed: 'Composto',
+}
 
 export default function SettingsClient({
     restaurant,
@@ -36,6 +47,22 @@ export default function SettingsClient({
     }
 }) {
     const router = useRouter()
+
+    // Segmento do negócio (mesmo conceito do cadastro inicial)
+    const [segment, setSegment] = useState<BusinessSegment>(
+        (restaurant.segment ?? 'food') as BusinessSegment
+    )
+    const [isSavingSegment, setIsSavingSegment] = useState(false)
+    const [segmentSaved, setSegmentSaved] = useState(false)
+
+    const segmentPreview = useMemo(() => {
+        const r = getSegmentRules(segment)
+        return {
+            types: r.allowedProductTypes.map((t) => PRODUCT_TYPE_LABELS[t]).join(' · '),
+            half: r.allowHalfAndHalf,
+            board: r.ordersBoardStyle === 'kanban' ? 'Kanban' : 'Lista',
+        }
+    }, [segment])
 
     // General Info State
     const [name, setName] = useState(restaurant.name)
@@ -135,6 +162,24 @@ export default function SettingsClient({
         }
     }
 
+    const handleSaveSegment = async () => {
+        setIsSavingSegment(true)
+        const result = await updateRestaurantSegment(restaurant.id, segment)
+        if (result.success) {
+            setSegmentSaved(true)
+            setTimeout(() => setSegmentSaved(false), 2000)
+            toast('Segmento atualizado', {
+                description: 'Cardápio, tipos de produto e painel passam a seguir este perfil.',
+                style: { backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c' },
+                icon: <CheckCircle2 className="w-5 h-5 text-orange-500" />,
+            })
+            router.refresh()
+        } else {
+            toast.error('Não foi possível salvar o segmento', { description: result.error })
+        }
+        setIsSavingSegment(false)
+    }
+
     const handleSaveInfo = async () => {
         setIsSavingInfo(true)
 
@@ -192,7 +237,7 @@ export default function SettingsClient({
             setDeliverySaved(true)
             setTimeout(() => setDeliverySaved(false), 2000)
             toast('Configurações salvas!', {
-                description: 'Dados de entrega e pagamento atualizados.',
+                description: 'Dados de envio e pagamento atualizados.',
                 style: { backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c' },
                 icon: <CheckCircle2 className="w-5 h-5 text-orange-500" />
             })
@@ -236,8 +281,8 @@ export default function SettingsClient({
             })
             setIsOpen(!checked) // Rollback
         } else {
-            toast(checked ? 'Loja aberta!' : 'Loja fechada', {
-                description: checked ? 'Seus clientes agora podem fazer pedidos.' : 'Seus clientes não podem mais fazer pedidos.',
+            toast(checked ? 'Vendas ativas' : 'Vendas pausadas', {
+                description: checked ? 'Clientes podem finalizar compras no catálogo público.' : 'Novas compras ficam bloqueadas no catálogo público.',
                 style: { backgroundColor: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c' },
                 icon: <Store className="w-5 h-5 text-orange-500" />
             })
@@ -284,7 +329,7 @@ export default function SettingsClient({
                     <h1 className="text-3xl font-extrabold text-slate-900">Configurações</h1>
                     <p className="text-slate-600 text-lg flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-orange-500" />
-                        Gerencie as configurações do seu restaurante
+                        Gerencie as configurações da sua loja
                     </p>
                 </div>
 
@@ -298,7 +343,7 @@ export default function SettingsClient({
                             <div className="flex-1">
                                 <h3 className="font-bold text-slate-900 mb-1">Bem-vindo às Configurações!</h3>
                                 <p className="text-sm text-slate-700">
-                                    Aqui você pode personalizar todas as informações do seu restaurante,
+                                    Aqui você pode personalizar todas as informações da sua loja,
                                     horários de funcionamento, formas de pagamento e muito mais.
                                 </p>
                             </div>
@@ -309,6 +354,89 @@ export default function SettingsClient({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Settings - Left Column (2/3) */}
                     <div className="lg:col-span-2 space-y-8">
+                        {/* Segmento do negócio */}
+                        <Card className="rounded-3xl border border-orange-50 shadow-xl shadow-orange-100/50">
+                            <CardHeader className="pb-6">
+                                <CardTitle className="flex items-center gap-3 text-2xl">
+                                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center">
+                                        <Tags className="w-5 h-5 text-violet-600" />
+                                    </div>
+                                    Tipo de negócio (segmento)
+                                </CardTitle>
+                                <CardDescription className="text-base">
+                                    Igual à etapa do cadastro: define tipos de produto no catálogo, meio a meio (quando
+                                    aplicável), taxa de envio no fluxo e o estilo do painel de pedidos.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6 px-8 pb-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {BUSINESS_SEGMENT_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setSegment(opt.value)}
+                                            className={cn(
+                                                'rounded-2xl border-2 p-4 text-left transition-all hover:border-orange-300 hover:bg-orange-50/50',
+                                                segment === opt.value
+                                                    ? 'border-orange-500 bg-orange-50 shadow-md ring-2 ring-orange-200'
+                                                    : 'border-slate-200 bg-white'
+                                            )}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <span className="text-2xl" aria-hidden>
+                                                    {opt.emoji}
+                                                </span>
+                                                <div>
+                                                    <div className="font-semibold text-slate-900">{opt.label}</div>
+                                                    <div className="text-xs text-slate-500 mt-1">{opt.hint}</div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-700 space-y-2">
+                                    <p className="font-medium text-slate-900">Com este segmento, o sistema usa:</p>
+                                    <ul className="list-disc list-inside space-y-1 text-slate-600">
+                                        <li>
+                                            <span className="font-medium text-slate-800">Tipos de produto:</span>{' '}
+                                            {segmentPreview.types}
+                                        </li>
+                                        <li>
+                                            <span className="font-medium text-slate-800">Meio a meio:</span>{' '}
+                                            {segmentPreview.half ? 'disponível (quando categoria/produto permitirem)' : 'desligado'}
+                                        </li>
+                                        <li>
+                                            <span className="font-medium text-slate-800">Pedidos no admin:</span>{' '}
+                                            visual em {segmentPreview.board}
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <Button
+                                        onClick={handleSaveSegment}
+                                        disabled={isSavingSegment || segment === (restaurant.segment ?? 'food')}
+                                        className="rounded-full bg-violet-600 hover:bg-violet-700 shadow-lg h-12 px-8"
+                                    >
+                                        {isSavingSegment ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Salvando...
+                                            </>
+                                        ) : segmentSaved ? (
+                                            <>
+                                                <Check className="w-4 h-4 mr-2" /> Salvo!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4 mr-2" /> Salvar segmento
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Restaurant Info */}
                         <Card className="rounded-3xl border border-orange-50 shadow-xl shadow-orange-100/50">
                             <CardHeader className="pb-6">
@@ -316,23 +444,23 @@ export default function SettingsClient({
                                     <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
                                         <Store className="w-5 h-5 text-orange-600" />
                                     </div>
-                                    Informações do Restaurante
+                                    Informações da loja
                                 </CardTitle>
                                 <CardDescription className="text-base">
-                                    Dados básicos que aparecem no cardápio público
+                                    Dados básicos que aparecem na página pública da loja
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6 px-8 pb-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="md:col-span-2">
                                         <Label htmlFor="name" className="text-slate-700 font-medium text-base">
-                                            Nome do Restaurante
+                                            Nome da loja
                                         </Label>
                                         <Input
                                             id="name"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            placeholder="Ex: Pizzaria do João"
+                                            placeholder="Ex: Loja do João, Ateliê Bella"
                                             className="mt-2 h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
                                         />
                                     </div>
@@ -345,7 +473,7 @@ export default function SettingsClient({
                                             id="description"
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
-                                            placeholder="Descreva seu restaurante..."
+                                            placeholder="Descreva sua loja ou marca..."
                                             className="mt-2 min-h-[100px] rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
                                         />
                                     </div>
@@ -377,7 +505,7 @@ export default function SettingsClient({
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="contato@restaurante.com"
+                                                placeholder="contato@suaempresa.com"
                                                 className="pl-10 h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
                                             />
                                         </div>
@@ -522,17 +650,17 @@ export default function SettingsClient({
                                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                                         <Truck className="w-5 h-5 text-green-600" />
                                     </div>
-                                    Entrega e Pagamento
+                                    Envio e pagamento
                                 </CardTitle>
                                 <CardDescription className="text-base">
-                                    Configure taxas de entrega e formas de pagamento aceitas
+                                    Configure taxas de envio e formas de pagamento aceitas
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6 px-8 pb-8">
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
                                         <Label htmlFor="delivery_fee" className="text-slate-700 font-medium text-base">
-                                            Taxa de Entrega (R$)
+                                            Taxa de envio (R$)
                                         </Label>
                                         <div className="relative mt-2">
                                             <Truck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -546,12 +674,12 @@ export default function SettingsClient({
                                                 className="pl-10 h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
                                             />
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">Valor cobrado por entrega</p>
+                                        <p className="text-xs text-slate-500 mt-1">Valor cobrado quando o cliente escolhe envio</p>
                                     </div>
 
                                     <div>
                                         <Label htmlFor="minimum_order" className="text-slate-700 font-medium text-base">
-                                            Pedido Mínimo (R$)
+                                            Compra mínima (R$)
                                         </Label>
                                         <div className="relative mt-2">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">
@@ -567,7 +695,7 @@ export default function SettingsClient({
                                                 className="pl-10 h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
                                             />
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">Valor mínimo para aceitar pedidos</p>
+                                        <p className="text-xs text-slate-500 mt-1">Valor mínimo do carrinho para aceitar a compra</p>
                                     </div>
                                 </div>
 
@@ -583,7 +711,7 @@ export default function SettingsClient({
                                             { key: 'credit', label: 'Cartão de Crédito', desc: 'Visa, Mastercard, Elo', emoji: '💳' },
                                             { key: 'debit', label: 'Cartão de Débito', desc: 'Todas as bandeiras', emoji: '💳' },
                                             { key: 'pix', label: 'PIX', desc: 'Pagamento instantâneo', emoji: '📱' },
-                                            { key: 'voucher', label: 'Vale Refeição', desc: 'Sodexo, Alelo, VR', emoji: '🎫' },
+                                            { key: 'voucher', label: 'Vale ou cartão benefício', desc: 'Sodexo, Alelo, VR e similares', emoji: '🎫' },
                                         ].map((method) => (
                                             <div
                                                 key={method.key}
@@ -738,7 +866,7 @@ export default function SettingsClient({
                         {/* Status Card */}
                         <Card className="rounded-3xl border border-orange-50 shadow-xl shadow-orange-100/50">
                             <CardHeader>
-                                <CardTitle className="text-lg">Status da Loja</CardTitle>
+                                <CardTitle className="text-lg">Status das vendas</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50">
@@ -746,10 +874,10 @@ export default function SettingsClient({
                                         <div className={`w-3 h-3 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
                                         <div>
                                             <p className="font-semibold text-slate-900">
-                                                {isOpen ? 'Loja Aberta' : 'Loja Fechada'}
+                                                {isOpen ? 'Aberto para pedidos' : 'Fechado para novos pedidos'}
                                             </p>
                                             <p className="text-xs text-slate-500">
-                                                {isOpen ? 'Aceitando pedidos' : 'Não aceitando pedidos'}
+                                                {isOpen ? 'Catálogo público aceita checkout' : 'Catálogo público sem checkout'}
                                             </p>
                                         </div>
                                     </div>
@@ -764,7 +892,7 @@ export default function SettingsClient({
                                 <Separator />
 
                                 <div className="space-y-3">
-                                    <span className="text-sm text-slate-600 font-medium block">Link do Cardápio Digital</span>
+                                    <span className="text-sm text-slate-600 font-medium block">Link público da loja</span>
 
                                     <div className="p-4 bg-orange-50 border border-orange-100 rounded-2xl space-y-3">
                                         <div className="flex items-center gap-3">
@@ -845,7 +973,7 @@ export default function SettingsClient({
                                     className="w-full rounded-full"
                                     size="sm"
                                 >
-                                    Excluir Restaurante
+                                    Excluir loja
                                 </Button>
                             </CardContent>
                         </Card>

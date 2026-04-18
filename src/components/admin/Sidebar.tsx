@@ -2,23 +2,44 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Palette, Bot, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { LayoutDashboard, ShoppingBag, LayoutGrid, Settings, LogOut, Users, Palette, Bot, ChevronLeft, ChevronRight, Store, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { updateStoreStatus } from '@/actions/settings'
+import { toast } from 'sonner'
 
 interface SidebarProps {
     isCollapsed?: boolean
     toggleSidebar?: () => void
+    /** Nome da loja do usuário (substitui o nome fixo do produto no topo) */
+    restaurantName?: string
+    restaurantId?: string
+    /** `restaurants.is_open` — pausa manual de novos pedidos no catálogo público */
+    initialStoreOpen?: boolean
 }
 
-export function Sidebar({ isCollapsed = false, toggleSidebar }: SidebarProps) {
+export function Sidebar({
+    isCollapsed = false,
+    toggleSidebar,
+    restaurantName,
+    restaurantId,
+    initialStoreOpen = true,
+}: SidebarProps) {
     const pathname = usePathname()
+    const [storeOpen, setStoreOpen] = useState(initialStoreOpen)
+    const [savingStore, setSavingStore] = useState(false)
+
+    useEffect(() => {
+        setStoreOpen(initialStoreOpen)
+    }, [initialStoreOpen])
 
     const navItems = [
         { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
         { href: '/dashboard/orders', label: 'Pedidos', icon: ShoppingBag },
-        { href: '/dashboard/menu', label: 'Cardápio', icon: UtensilsCrossed },
+        { href: '/dashboard/menu', label: 'Catálogo', icon: LayoutGrid },
         { href: '/dashboard/customers', label: 'Clientes', icon: Users },
         { href: '/dashboard/agent-config', label: 'Agente IA', icon: Bot },
         { href: '/dashboard/customization', label: 'Personalização', icon: Palette },
@@ -33,6 +54,24 @@ export function Sidebar({ isCollapsed = false, toggleSidebar }: SidebarProps) {
         router.refresh()
         router.push('/login')
     }
+
+    const handleStoreOpenChange = async (open: boolean) => {
+        if (!restaurantId) return
+        const prev = storeOpen
+        setStoreOpen(open)
+        setSavingStore(true)
+        const result = await updateStoreStatus(restaurantId, open)
+        setSavingStore(false)
+        if (!result.success) {
+            setStoreOpen(prev)
+            toast.error(result.error || 'Não foi possível atualizar')
+            return
+        }
+        toast.success(open ? 'Catálogo aceitando novos pedidos' : 'Catálogo pausado para novos pedidos')
+        router.refresh()
+    }
+
+    const brandTitle = restaurantName?.trim() || 'Seu negócio'
 
     return (
         <aside
@@ -54,17 +93,20 @@ export function Sidebar({ isCollapsed = false, toggleSidebar }: SidebarProps) {
             )}
 
             {/* Logo Section */}
-            <div className={cn(
-                "h-20 flex items-center border-b border-[#F4F4F5] bg-white transition-all",
-                isCollapsed ? "justify-center px-0" : "px-6"
-            )}>
-                <div className="flex items-center gap-3">
+            <div
+                className={cn(
+                    "h-20 flex items-center border-b border-[#F4F4F5] bg-white transition-all",
+                    isCollapsed ? "justify-center px-0" : "px-6"
+                )}
+                title={brandTitle}
+            >
+                <div className="flex items-center gap-3 min-w-0">
                     <div className="size-9 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-orange-200 shadow-lg flex-shrink-0">
-                        <UtensilsCrossed className="size-5 text-white" />
+                        <Store className="size-5 text-white" />
                     </div>
                     {!isCollapsed && (
-                        <div className="flex flex-col animate-in fade-in duration-300">
-                            <span className="font-bold text-gray-900 text-lg leading-none">MenuJá</span>
+                        <div className="flex flex-col animate-in fade-in duration-300 min-w-0 flex-1">
+                            <span className="font-bold text-gray-900 text-lg leading-none truncate">{brandTitle}</span>
                             <span className="text-[11px] text-orange-600 mt-1 font-medium leading-none bg-orange-50 px-1.5 py-0.5 rounded-full w-fit">
                                 Painel Admin
                             </span>
@@ -72,6 +114,56 @@ export function Sidebar({ isCollapsed = false, toggleSidebar }: SidebarProps) {
                     )}
                 </div>
             </div>
+
+            {restaurantId && (
+                <div
+                    className={cn(
+                        'border-b border-[#F4F4F5] bg-gradient-to-b from-orange-50/40 to-white',
+                        isCollapsed ? 'px-2 py-3' : 'px-4 py-3'
+                    )}
+                >
+                    {!isCollapsed ? (
+                        <>
+                            <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-2">
+                                Vendas (manual)
+                            </p>
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-slate-900 truncate">
+                                        {storeOpen ? 'Aberto' : 'Pausado'}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 leading-tight">
+                                        {storeOpen ? 'Clientes podem finalizar compras' : 'Checkout bloqueado na vitrine'}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {savingStore ? (
+                                        <Loader2 className="h-4 w-4 animate-spin text-orange-500" aria-hidden />
+                                    ) : null}
+                                    <Switch
+                                        checked={storeOpen}
+                                        onCheckedChange={handleStoreOpenChange}
+                                        disabled={savingStore}
+                                        className="data-[state=checked]:bg-green-600"
+                                        aria-label={storeOpen ? 'Pausar vendas' : 'Abrir vendas'}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center gap-1" title={storeOpen ? 'Vendas abertas' : 'Vendas pausadas'}>
+                            {savingStore ? <Loader2 className="h-4 w-4 animate-spin text-orange-500" /> : null}
+                            <Switch
+                                checked={storeOpen}
+                                onCheckedChange={handleStoreOpenChange}
+                                disabled={savingStore}
+                                className="data-[state=checked]:bg-green-600 scale-90"
+                                aria-label={storeOpen ? 'Pausar vendas' : 'Abrir vendas'}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Navigation */}
             <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto scrollbar-hide">

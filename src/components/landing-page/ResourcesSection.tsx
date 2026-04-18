@@ -11,8 +11,8 @@ export function ResourcesSection() {
     const resources = [
         {
             icon: <ClipboardList className="w-8 h-8 text-orange-500" />,
-            title: "Cardápio Digital",
-            items: ["Seu menu online", "Atualização em segundos", "Link pronto para divulgar"]
+            title: "Catálogo digital",
+            items: ["Sua vitrine online", "Atualização em segundos", "Link pronto para divulgar"]
         },
         {
             icon: <ShoppingCart className="w-8 h-8 text-orange-500" />,
@@ -27,7 +27,7 @@ export function ResourcesSection() {
         {
             icon: <Package className="w-8 h-8 text-orange-500" />,
             title: "Gestão de Pedidos",
-            items: ["Acompanhe em tempo real", "Status: novo, preparo, entrega", "Organização total"]
+            items: ["Acompanhe em tempo real", "Status: novo, separação, trânsito", "Organização total"]
         },
         {
             icon: <BarChart3 className="w-8 h-8 text-orange-500" />,
@@ -51,7 +51,7 @@ export function ResourcesSection() {
                         Tudo o que você precisa para crescer
                     </h2>
                     <p className="text-lg text-slate-600">
-                        Ferramentas essenciais para profissionalizar seu delivery e ganhar tempo.
+                        Ferramentas essenciais para profissionalizar suas vendas e ganhar tempo.
                     </p>
                 </div>
 

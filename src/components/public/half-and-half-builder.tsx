@@ -10,6 +10,8 @@ import { useCartStore } from '@/store/cart-store'
 import { Product, Restaurant, Category } from '@/types'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
+import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
 
 interface HalfAndHalfBuilderProps {
     category: Category
@@ -26,6 +28,7 @@ export default function HalfAndHalfBuilder({
     primaryColor,
     textColor
 }: HalfAndHalfBuilderProps) {
+    const ordering = useRestaurantOrderingOpen(restaurant)
     const router = useRouter()
     const addToCart = useCartStore((state) => state.addItem)
 
@@ -238,6 +241,7 @@ export default function HalfAndHalfBuilder({
 
     return (
         <div className="space-y-6 pb-32">
+            <ClosedStoreBanner restaurant={restaurant} />
             {/* Progress Indicator */}
             <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -375,7 +379,7 @@ export default function HalfAndHalfBuilder({
                     <div className="space-y-2">
                         <Label>Observação</Label>
                         <Textarea
-                            placeholder="Ex: Tirar cebola, bem passado..."
+                            placeholder="Ex: embalagem para presente, frágil, observações de entrega..."
                             value={observation}
                             onChange={(e) => setObservation(e.target.value)}
                             className="resize-none"
@@ -425,8 +429,10 @@ export default function HalfAndHalfBuilder({
                             <Button
                                 className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all text-white"
                                 onClick={handleNext}
-                                disabled={!canProceed}
-                                style={{ backgroundColor: primaryColor }}
+                                disabled={!canProceed || !ordering.acceptingOrders}
+                                style={{
+                                    backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
+                                }}
                             >
                                 <span className="flex items-center gap-2">
                                     Continuar
@@ -437,7 +443,10 @@ export default function HalfAndHalfBuilder({
                             <Button
                                 className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all flex justify-between px-6 text-white"
                                 onClick={handleAddToCart}
-                                style={{ backgroundColor: primaryColor }}
+                                disabled={!ordering.acceptingOrders}
+                                style={{
+                                    backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
+                                }}
                             >
                                 <span className="flex items-center gap-2">
                                     <ShoppingBag className="w-5 h-5" />

@@ -6,6 +6,8 @@ export interface Customer {
     phone: string
     name: string
     email?: string
+    /** Escopo da loja; sessão inválida em outra LP se diferente */
+    restaurant_id?: string | null
 }
 
 export interface CustomerAddress {

@@ -12,9 +12,10 @@ import { Loader2, Phone, User } from 'lucide-react'
 interface CustomerLoginModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
+    restaurantId: string
 }
 
-export default function CustomerLoginModal({ open, onOpenChange }: CustomerLoginModalProps) {
+export default function CustomerLoginModal({ open, onOpenChange, restaurantId }: CustomerLoginModalProps) {
     const [phone, setPhone] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
@@ -47,7 +48,7 @@ export default function CustomerLoginModal({ open, onOpenChange }: CustomerLogin
         setError('')
 
         try {
-            const result = await getCustomerByPhone(numbersOnly)
+            const result = await getCustomerByPhone(numbersOnly, restaurantId)
 
             if (result.success && result.customer) {
                 // Customer found, log in
@@ -62,7 +63,7 @@ export default function CustomerLoginModal({ open, onOpenChange }: CustomerLogin
                 onOpenChange(false)
                 setPhone('')
             } else {
-                setError('Telefone não encontrado. Faça seu primeiro pedido para criar uma conta!')
+                setError('Telefone não encontrado. Faça sua primeira compra aqui para criar seu cadastro.')
             }
         } catch (err) {
             setError('Erro ao fazer login. Tente novamente.')
@@ -80,7 +81,7 @@ export default function CustomerLoginModal({ open, onOpenChange }: CustomerLogin
                         Entrar na sua conta
                     </DialogTitle>
                     <DialogDescription>
-                        Digite seu telefone para acessar seus pedidos e perfil
+                        Digite seu telefone para ver pedidos e dados da sua conta neste catálogo
                     </DialogDescription>
                 </DialogHeader>
 
@@ -125,7 +126,7 @@ export default function CustomerLoginModal({ open, onOpenChange }: CustomerLogin
                     </Button>
 
                     <p className="text-xs text-center text-gray-500">
-                        Não tem conta? Faça seu primeiro pedido para criar uma automaticamente!
+                        Primeira vez? Ao finalizar uma compra seu cadastro é criado automaticamente.
                     </p>
                 </div>
             </DialogContent>

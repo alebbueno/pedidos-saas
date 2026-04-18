@@ -8,10 +8,15 @@ export default async function MenuPage() {
     const restaurant = await getOwnerRestaurant()
     if (!restaurant) return <div>Restaurant not found</div>
 
-    const { categories, products } = await getMenu(restaurant.id)
+    const { categories, products } = await getMenu(restaurant.id, { includeInactive: true })
 
     return (
-        <MenuManager restaurantId={restaurant.id} initialProducts={products} initialCategories={categories} />
+        <MenuManager
+            restaurantId={restaurant.id}
+            restaurantSegment={restaurant.segment ?? 'food'}
+            initialProducts={products}
+            initialCategories={categories}
+        />
     )
 }
 

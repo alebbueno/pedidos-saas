@@ -61,7 +61,11 @@ type ProductInput = {
     image_url?: string
     restaurant_id: string
     allows_half_and_half?: boolean
+    product_type?: 'simple' | 'customizable' | 'variant' | 'composed'
     option_groups?: (Partial<ProductOptionGroup> & { options?: Partial<ProductOption>[] })[]
+    is_active?: boolean
+    is_made_to_order?: boolean
+    made_to_order_lead_days?: number | null
 }
 
 
@@ -82,6 +86,13 @@ export async function upsertProduct(product: ProductInput) {
         }
     }
 
+    const isMadeToOrder = !!product.is_made_to_order
+    const rawLead = product.made_to_order_lead_days
+    const leadDays =
+        isMadeToOrder && rawLead != null && Number.isFinite(Number(rawLead))
+            ? Math.min(366, Math.max(1, Math.floor(Number(rawLead))))
+            : null
+
     // 1. Upsert Product
     const { data: savedProduct, error: prodError } = await supabase
         .from('products')
@@ -93,7 +104,11 @@ export async function upsertProduct(product: ProductInput) {
             base_price: product.base_price,
             category_id: product.category_id,
             image_url: product.image_url,
-            allows_half_and_half: product.allows_half_and_half || false
+            allows_half_and_half: product.allows_half_and_half || false,
+            product_type: product.product_type ?? 'customizable',
+            is_active: product.is_active !== false,
+            is_made_to_order: isMadeToOrder,
+            made_to_order_lead_days: isMadeToOrder ? leadDays : null,
         })
         .select()
         .single()
@@ -105,6 +120,7 @@ export async function upsertProduct(product: ProductInput) {
 
     if (!product.option_groups) {
         revalidatePath('/dashboard/menu')
+        revalidatePath('/lp', 'layout')
         return { success: true, product: savedProduct }
     }
 
@@ -188,7 +204,51 @@ export async function upsertProduct(product: ProductInput) {
     }
 
     revalidatePath('/dashboard/menu')
+    revalidatePath('/lp', 'layout')
     return { success: true, product: savedProduct }
+}
+
+/** Alterna disponibilidade no catálogo público (is_active) com checagem de propriedade. */
+export async function updateProductAvailability(productId: string, isActive: boolean) {
+    const supabase = await createClient()
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+        return { success: false as const, error: 'Não autenticado' }
+    }
+
+    const { data: restaurant, error: rErr } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('owner_id', user.id)
+        .single()
+
+    if (rErr || !restaurant) {
+        return { success: false as const, error: 'Loja não encontrada' }
+    }
+
+    const { data: row, error: pErr } = await supabase
+        .from('products')
+        .select('id')
+        .eq('id', productId)
+        .eq('restaurant_id', restaurant.id)
+        .maybeSingle()
+
+    if (pErr || !row) {
+        return { success: false as const, error: 'Produto não encontrado' }
+    }
+
+    const { error } = await supabase.from('products').update({ is_active: isActive }).eq('id', productId)
+
+    if (error) {
+        console.error('[updateProductAvailability]', error)
+        return { success: false as const, error: error.message }
+    }
+
+    revalidatePath('/dashboard/menu')
+    revalidatePath('/lp', 'layout')
+    return { success: true as const }
 }
 
 export async function deleteProduct(productId: string) {
@@ -215,6 +275,7 @@ export async function deleteProduct(productId: string) {
     }
 
     revalidatePath('/dashboard/menu')
+    revalidatePath('/lp', 'layout')
 }
 
 // Helper to delete image structure

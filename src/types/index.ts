@@ -6,6 +6,12 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+/** Vertical do negócio — define regras ativas (ver `getSegmentRules`) */
+export type BusinessSegment = 'food' | 'fashion' | 'handcraft' | 'retail'
+
+/** Tipo de produto no catálogo (NOVA_REGRA.md) */
+export type ProductType = 'simple' | 'customizable' | 'variant' | 'composed'
+
 export interface Restaurant {
   id: string
   created_at: string
@@ -59,6 +65,8 @@ export interface Restaurant {
   } | null
   // Half and half configuration
   half_and_half_pricing_method?: 'highest' | 'average' | 'sum'
+  /** Segmento de negócio (multi-vertical) */
+  segment?: BusinessSegment
 }
 
 export interface Category {
@@ -79,6 +87,11 @@ export interface Product {
   image_url: string | null
   is_active: boolean
   allows_half_and_half?: boolean
+  product_type?: ProductType
+  /** Vendido como encomenda / sob demanda */
+  is_made_to_order?: boolean
+  /** Prazo estimado em dias (calendário) quando `is_made_to_order` */
+  made_to_order_lead_days?: number | null
 }
 
 export interface ProductOptionGroup {

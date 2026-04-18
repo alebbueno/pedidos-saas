@@ -7,7 +7,7 @@ export function FeaturesNew() {
         <section className="py-20 lg:py-32 bg-[#FFF9F2] overflow-hidden" id="features">
             <div className="container mx-auto px-4 max-w-7xl space-y-32">
 
-                {/* Feature 1: Cardápio Digital (Payment/App visual style) */}
+                {/* Feature 1: Catálogo digital */}
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     {/* Image Column */}
                     <ScrollReveal animation="fade-in-right" className="relative order-2 lg:order-1">
@@ -34,9 +34,9 @@ export function FeaturesNew() {
                                     </div>
                                     <div className="p-4 space-y-4 flex-1 bg-white">
                                         <div className="flex gap-2 mb-4 overflow-x-auto">
-                                            <div className="w-20 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">Burgers</div>
-                                            <div className="w-20 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">Bebidas</div>
-                                            <div className="w-20 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">Combos</div>
+                                            <div className="w-20 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">Destaques</div>
+                                            <div className="w-20 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">Novidades</div>
+                                            <div className="w-20 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs">Ofertas</div>
                                         </div>
                                         <div className="space-y-3">
                                             {[1, 2, 3].map(i => (
@@ -62,18 +62,18 @@ export function FeaturesNew() {
                             <Smartphone className="w-7 h-7 text-[#FF3B30]" />
                         </div>
                         <h2 className="text-4xl lg:text-5xl font-extrabold text-[#FF3B30] mb-6 leading-tight">
-                            Cardápio digital <br />bonito e rápido
+                            Catálogo digital <br />bonito e rápido
                         </h2>
                         <h3 className="text-xl font-bold text-slate-900 mb-4">
                             Seus clientes acessam pelo celular sem instalar nada.
                         </h3>
                         <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                            Esqueça PDFs e cardápios difíceis de ler. Ofereça uma experiência de compra incrível onde seu cliente monta o pedido sozinho, escolhe adicionais e envia tudo pronto.
+                            Esqueça PDFs e listas soltas. Ofereça uma vitrine clara onde o cliente escolhe produtos, variações e opcionais e envia o pedido pronto para você.
                         </p>
                         <ul className="space-y-4">
                             <li className="flex items-center text-slate-700 font-medium">
                                 <Check className="w-5 h-5 text-green-500 mr-3" />
-                                Seu menu 100% online
+                                Seu catálogo 100% online
                             </li>
                             <li className="flex items-center text-slate-700 font-medium">
                                 <Check className="w-5 h-5 text-green-500 mr-3" />
@@ -98,7 +98,7 @@ export function FeaturesNew() {
                             Tudo em um <br />só lugar
                         </h2>
                         <h3 className="text-xl font-bold text-slate-900 mb-4">
-                            Gestão completa de pedidos, clientes e entregas.
+                            Gestão completa de pedidos, clientes e retirada ou entrega.
                         </h3>
                         <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                             Elimine a bagunça dos pedidos manuais. Tenha controle total do seu faturamento, histórico de pedidos e base de clientes. Saiba exatamente quem compra com você.
@@ -184,16 +184,16 @@ export function FeaturesNew() {
                                 <div className="flex-1 p-4 space-y-4 overflow-hidden relative">
                                     {/* Messages */}
                                     <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%] self-start text-sm">
-                                        Olá! Gostaria de fazer um pedido. 🍔
+                                        Olá! Quero fazer um pedido.
                                     </div>
                                     <div className="bg-[#DCF8C6] p-3 rounded-lg rounded-tr-none shadow-sm max-w-[80%] ml-auto text-sm">
-                                        Oi! Claro. Aqui está nosso cardápio digital: <span className="text-blue-500 underline">link.do/cardapio</span>
+                                        Oi! Segue o link da nossa loja: <span className="text-blue-500 underline">link.da/loja</span>
                                     </div>
                                     <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%] self-start text-sm mt-4">
-                                        Escolhi um X-Bacon e uma Coca.
+                                        Quero 2 unidades do produto em destaque, tamanho M.
                                     </div>
                                     <div className="bg-[#DCF8C6] p-3 rounded-lg rounded-tr-none shadow-sm max-w-[80%] ml-auto text-sm">
-                                        Perfeito! Seu pedido #1023 foi confirmado. Tempo estimado: 40 min. 🛵
+                                        Perfeito! Pedido #1023 confirmado. Avisamos quando estiver pronto.
                                     </div>
                                 </div>
                             </div>
@@ -221,7 +221,7 @@ export function FeaturesNew() {
                             </li>
                             <li className="flex items-center text-slate-700 font-medium">
                                 <Check className="w-5 h-5 text-green-500 mr-3" />
-                                Envia o pedido pronto para a cozinha
+                                Encaminha o pedido organizado para sua equipe
                             </li>
                             <li className="flex items-center text-slate-700 font-medium">
                                 <Check className="w-5 h-5 text-green-500 mr-3" />

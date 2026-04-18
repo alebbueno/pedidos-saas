@@ -3,8 +3,9 @@
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { UtensilsCrossed, Upload, Lightbulb, Image as ImageIcon } from 'lucide-react'
+import { Package, Upload, Lightbulb, Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
+import { IMaskInput } from 'react-imask'
 
 interface Step6Props {
     data: {
@@ -38,7 +39,7 @@ export function Step6FirstProduct({ data, onChange, categoryName }: Step6Props) 
             {/* Header */}
             <div className="text-center space-y-2">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-                    <UtensilsCrossed className="w-8 h-8 text-red-600" />
+                    <Package className="w-8 h-8 text-red-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900">Primeiro Produto</h2>
                 <p className="text-slate-600 text-lg">
@@ -101,7 +102,7 @@ export function Step6FirstProduct({ data, onChange, categoryName }: Step6Props) 
                     </Label>
                     <Input
                         id="product-name"
-                        placeholder="Ex: Pizza Margherita"
+                        placeholder="Ex: Camiseta algodão orgânico, Kit sabonetes, Marmita fit"
                         value={data.name}
                         onChange={(e) => onChange({ ...data, name: e.target.value })}
                         className="h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
@@ -115,13 +116,13 @@ export function Step6FirstProduct({ data, onChange, categoryName }: Step6Props) 
                     </Label>
                     <Textarea
                         id="product-description"
-                        placeholder="Ex: Molho de tomate, mussarela, manjericão fresco e azeite extra virgem"
+                        placeholder="Ex: Tamanhos disponíveis, materiais, prazo de produção ou validade"
                         value={data.description}
                         onChange={(e) => onChange({ ...data, description: e.target.value })}
                         className="rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500 min-h-[100px]"
                     />
                     <p className="text-sm text-slate-500">
-                        Descreva os ingredientes e diferenciais do produto
+                        Destaque o que o cliente precisa saber antes de comprar
                     </p>
                 </div>
 
@@ -134,14 +135,21 @@ export function Step6FirstProduct({ data, onChange, categoryName }: Step6Props) 
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-lg">
                             R$
                         </span>
-                        <Input
+                        <IMaskInput
                             id="product-price"
-                            type="number"
-                            step="0.01"
-                            placeholder="35.00"
+                            mask={Number}
+                            radix=","
+                            scale={2}
+                            thousandsSeparator="."
+                            mapToRadix={['.']}
+                            normalizeZeros
+                            min={0}
+                            max={99_999_999.99}
                             value={data.basePrice}
-                            onChange={(e) => onChange({ ...data, basePrice: e.target.value })}
-                            className="h-14 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500 pl-12 text-lg font-semibold"
+                            onAccept={(value) => onChange({ ...data, basePrice: value })}
+                            placeholder="0,00"
+                            inputMode="decimal"
+                            className="flex h-14 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pl-12 text-lg font-semibold ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                         />
                     </div>
                 </div>
@@ -165,7 +173,7 @@ export function Step6FirstProduct({ data, onChange, categoryName }: Step6Props) 
                         </p>
                         <div className="flex items-center justify-between">
                             <span className="text-2xl font-bold text-orange-600">
-                                R$ {data.basePrice || '0,00'}
+                                R$&nbsp;{data.basePrice.trim() ? data.basePrice : '0,00'}
                             </span>
                             <button className="px-6 py-2 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 transition-colors">
                                 Adicionar
@@ -177,15 +185,15 @@ export function Step6FirstProduct({ data, onChange, categoryName }: Step6Props) 
 
             {/* Example Card */}
             <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-2xl p-6">
-                <h3 className="font-semibold text-slate-900 mb-3">🍕 Exemplo de produto:</h3>
+                <h3 className="font-semibold text-slate-900 mb-3">📦 Exemplo de produto:</h3>
                 <div className="space-y-2 text-sm text-slate-700">
-                    <p><strong>Nome:</strong> Pizza Margherita</p>
-                    <p><strong>Descrição:</strong> Molho de tomate, mussarela, manjericão fresco e azeite extra virgem</p>
-                    <p><strong>Preço:</strong> R$ 35,00</p>
+                    <p><strong>Nome:</strong> Ecobag edição limitada</p>
+                    <p><strong>Descrição:</strong> Algodão cru, alças reforçadas, estampa exclusiva da coleção</p>
+                    <p><strong>Preço:</strong> R$ 45,00</p>
                 </div>
                 <div className="mt-4 p-3 bg-white rounded-xl border border-red-200">
                     <p className="text-xs text-slate-600">
-                        💡 <strong>Lembre-se:</strong> Você pode adicionar opções (tamanhos, bordas, adicionais)
+                        💡 <strong>Lembre-se:</strong> Você pode adicionar variações (tamanho, cor, complementos)
                         para este produto depois no painel de controle!
                     </p>
                 </div>

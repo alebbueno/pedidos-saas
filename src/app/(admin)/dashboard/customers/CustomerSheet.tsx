@@ -52,8 +52,8 @@ export function CustomerSheet({ customerId, onClose }: CustomerSheetProps) {
     const statusMap: Record<string, { label: string, color: string, bgColor: string, icon: any }> = {
         'new': { label: 'Novo', color: 'text-blue-700', bgColor: 'bg-blue-50 border-blue-200', icon: Clock },
         'confirmed': { label: 'Aceito', color: 'text-yellow-700', bgColor: 'bg-yellow-50 border-yellow-200', icon: Clock },
-        'preparing': { label: 'Preparando', color: 'text-orange-700', bgColor: 'bg-orange-50 border-orange-200', icon: Clock },
-        'delivery': { label: 'Em entrega', color: 'text-indigo-700', bgColor: 'bg-indigo-50 border-indigo-200', icon: Clock },
+        'preparing': { label: 'Em separação', color: 'text-orange-700', bgColor: 'bg-orange-50 border-orange-200', icon: Clock },
+        'delivery': { label: 'Em trânsito', color: 'text-indigo-700', bgColor: 'bg-indigo-50 border-indigo-200', icon: Clock },
         'completed': { label: 'Concluído', color: 'text-green-700', bgColor: 'bg-green-50 border-green-200', icon: CheckCircle },
         'canceled': { label: 'Cancelado', color: 'text-red-700', bgColor: 'bg-red-50 border-red-200', icon: XCircle },
     }

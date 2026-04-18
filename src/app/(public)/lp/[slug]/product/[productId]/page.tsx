@@ -18,12 +18,14 @@ export default async function ProductPage({ params }: PageProps) {
         return notFound()
     }
 
-    const { products } = await getMenu(restaurant.id)
+    const { products, categories } = await getMenu(restaurant.id)
     const product = products.find(p => p.id === productId)
 
     if (!product) {
         return notFound()
     }
+
+    const category = categories.find(c => c.id === product.category_id)
 
     const primaryColor = restaurant.primary_color || '#F97316'
     const textColor = restaurant.text_color || '#000000'
@@ -113,6 +115,7 @@ export default async function ProductPage({ params }: PageProps) {
                 <ProductOptionsForm
                     product={product}
                     restaurant={restaurant}
+                    category={category}
                     primaryColor={primaryColor}
                     textColor={textColor}
                 />

@@ -24,7 +24,7 @@ export function AiSection() {
                         </h2>
 
                         <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                            Seu atendente virtual entende o cardápio, conversa com o cliente, monta o pedido e registra tudo no sistema — <span className="text-white font-semibold">24h por dia, sem parar</span>.
+                            Seu atendente virtual entende seu catálogo, conversa com o cliente, monta o pedido e registra tudo no sistema — <span className="text-white font-semibold">24h por dia, sem parar</span>.
                         </p>
 
                         <div className="space-y-6 mb-10">
@@ -43,7 +43,7 @@ export function AiSection() {
                         </div>
 
                         <Button size="lg" asChild className="bg-indigo-600 hover:bg-indigo-700 text-white border-0">
-                            <Link href="/signup">Quero automatizar meu delivery</Link>
+                            <Link href="/signup">Quero automatizar minhas vendas</Link>
                         </Button>
                     </div>
 
@@ -71,16 +71,16 @@ export function AiSection() {
                                     {/* Chat messages */}
                                     <div className="flex-1 p-4 space-y-4 overflow-hidden relative">
                                         <div className="bg-white p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm text-gray-800">
-                                            Olá! Bem-vindo ao Burger King! 🍔
-                                            Gostaria de ver o cardápio?
+                                            Olá! Bem-vindo à nossa loja.
+                                            Gostaria de ver nossos produtos?
                                         </div>
                                         <div className="bg-[#DCF8C6] ml-auto p-2.5 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm text-gray-800">
-                                            Quero ver os combos, por favor.
+                                            Quero ver as opções em promoção.
                                         </div>
                                         <div className="bg-white p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm text-gray-800">
-                                            Certo! Temos estas opções hoje:
-                                            1. X-Salada + Refri
-                                            2. X-Bacon Artesanal
+                                            Temos estes destaques hoje:
+                                            1. Kit promocional A
+                                            2. Peça best-seller com desconto
 
                                             Qual você prefere?
                                         </div>

@@ -36,7 +36,7 @@ export async function getDashboardStats(restaurantId: string) {
         .from('orders')
         .select('*', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
-        .in('status', ['preparing', 'out_for_delivery'])
+        .in('status', ['preparing', 'delivery'])
 
     // 4. Fetch New Customers (created today)
     const { count: newCustomers } = await supabase

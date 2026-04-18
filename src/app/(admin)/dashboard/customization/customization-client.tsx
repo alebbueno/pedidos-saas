@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Palette, Image as ImageIcon, Type, Save, X, DollarSign } from 'lucide-react'
 import { updateRestaurantColors, updateRestaurantFont, updateRestaurantImages, updateHalfAndHalfPricingMethod } from '@/actions/admin'
+import { getSegmentRules } from '@/lib/segment-rules'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { useToast, ToastContainer } from '@/components/ui/toast'
@@ -18,6 +19,7 @@ interface CustomizationClientProps {
 
 export function CustomizationClient({ restaurant }: CustomizationClientProps) {
     const { toasts, removeToast, success, error } = useToast()
+    const segmentRules = getSegmentRules(restaurant.segment)
 
     const [colors, setColors] = useState({
         primary_color: restaurant.primary_color || '#F97316',
@@ -151,7 +153,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                 Cores do Tema
                             </CardTitle>
                             <CardDescription>
-                                Defina as cores principais do seu cardápio digital
+                                Defina as cores principais da sua vitrine online
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -216,7 +218,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                             className="flex-1"
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-1">Cor de fundo do cardápio</p>
+                                    <p className="text-xs text-gray-500 mt-1">Cor de fundo da página pública</p>
                                 </div>
 
                                 <div>
@@ -264,12 +266,12 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                 Logo e Banner
                             </CardTitle>
                             <CardDescription>
-                                Adicione logo e imagem de capa ao cardápio
+                                Adicione logo e imagem de capa à vitrine
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <Label>Logo do Restaurante</Label>
+                                <Label>Logo</Label>
                                 {logoUrl ? (
                                     <div className="mt-2 relative w-48 h-48 border border-gray-200 rounded-lg overflow-hidden">
                                         <Image src={logoUrl} alt="Logo" fill className="object-cover" />
@@ -303,7 +305,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                             </div>
 
                             <div>
-                                <Label>Banner do Cardápio</Label>
+                                <Label>Banner</Label>
                                 {bannerUrl ? (
                                     <div className="mt-2 relative w-full aspect-[3/1] border border-gray-200 rounded-lg overflow-hidden">
                                         <Image src={bannerUrl} alt="Banner" fill className="object-cover" />
@@ -346,7 +348,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                 Tipografia
                             </CardTitle>
                             <CardDescription>
-                                Configure as fontes do cardápio
+                                Configure as fontes da vitrine
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -381,62 +383,64 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                         </CardContent>
                     </Card>
 
-                    {/* Half and Half Pricing */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <DollarSign className="w-5 h-5 text-orange-500" />
-                                Meio a Meio - Método de Cobrança
-                            </CardTitle>
-                            <CardDescription>
-                                Configure como será calculado o preço de produtos meio a meio
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label htmlFor="pricing_method">Método de Cobrança</Label>
-                                <select
-                                    id="pricing_method"
-                                    className="w-full mt-1.5 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    value={pricingMethod}
-                                    onChange={(e) => setPricingMethod(e.target.value as 'highest' | 'average' | 'sum')}
-                                >
-                                    <option value="highest">Preço Mais Alto - Cobra o valor da metade mais cara</option>
-                                    <option value="average">Preço Médio - Calcula a média dos valores</option>
-                                    <option value="sum">Soma dos Preços - Soma o valor das duas metades</option>
-                                </select>
-                                <p className="text-xs text-gray-500 mt-2">
-                                    {pricingMethod === 'highest' && '✓ Recomendado: Justo para o cliente e rentável para o restaurante'}
-                                    {pricingMethod === 'average' && 'Cliente paga a média entre as duas metades escolhidas'}
-                                    {pricingMethod === 'sum' && 'Cliente paga o valor total das duas metades (mais caro)'}
-                                </p>
-                            </div>
+                    {/* Half and Half Pricing — apenas segmento alimentação */}
+                    {segmentRules.allowHalfAndHalf && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <DollarSign className="w-5 h-5 text-orange-500" />
+                                    Meio a Meio - Método de Cobrança
+                                </CardTitle>
+                                <CardDescription>
+                                    Configure como será calculado o preço de produtos meio a meio
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label htmlFor="pricing_method">Método de Cobrança</Label>
+                                    <select
+                                        id="pricing_method"
+                                        className="w-full mt-1.5 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        value={pricingMethod}
+                                        onChange={(e) => setPricingMethod(e.target.value as 'highest' | 'average' | 'sum')}
+                                    >
+                                        <option value="highest">Preço Mais Alto - Cobra o valor da metade mais cara</option>
+                                        <option value="average">Preço Médio - Calcula a média dos valores</option>
+                                        <option value="sum">Soma dos Preços - Soma o valor das duas metades</option>
+                                    </select>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        {pricingMethod === 'highest' && '✓ Recomendado: Justo para o cliente e rentável para o negócio'}
+                                        {pricingMethod === 'average' && 'Cliente paga a média entre as duas metades escolhidas'}
+                                        {pricingMethod === 'sum' && 'Cliente paga o valor total das duas metades (mais caro)'}
+                                    </p>
+                                </div>
 
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                <p className="text-sm text-blue-800">
-                                    <strong>Exemplo:</strong> Pizza metade Calabresa (R$ 40) + metade Mussarela (R$ 35)
-                                </p>
-                                <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                                    <li>• <strong>Preço Mais Alto:</strong> R$ 40,00</li>
-                                    <li>• <strong>Preço Médio:</strong> R$ 37,50</li>
-                                    <li>• <strong>Soma:</strong> R$ 75,00</li>
-                                </ul>
-                            </div>
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <p className="text-sm text-blue-800">
+                                        <strong>Exemplo:</strong> Pizza metade Calabresa (R$ 40) + metade Mussarela (R$ 35)
+                                    </p>
+                                    <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                                        <li>• <strong>Preço Mais Alto:</strong> R$ 40,00</li>
+                                        <li>• <strong>Preço Médio:</strong> R$ 37,50</li>
+                                        <li>• <strong>Soma:</strong> R$ 75,00</li>
+                                    </ul>
+                                </div>
 
-                            <Separator />
+                                <Separator />
 
-                            <div className="flex justify-end">
-                                <Button
-                                    className="bg-orange-500 hover:bg-orange-600"
-                                    onClick={handleSavePricingMethod}
-                                    disabled={isLoadingPricing}
-                                >
-                                    <Save className="w-4 h-4 mr-2" />
-                                    {isLoadingPricing ? 'Salvando...' : 'Salvar Configuração'}
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                <div className="flex justify-end">
+                                    <Button
+                                        className="bg-orange-500 hover:bg-orange-600"
+                                        onClick={handleSavePricingMethod}
+                                        disabled={isLoadingPricing}
+                                    >
+                                        <Save className="w-4 h-4 mr-2" />
+                                        {isLoadingPricing ? 'Salvando...' : 'Salvar Configuração'}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Sidebar - Right Column (1/3) */}
@@ -482,7 +486,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                     <h3 className="font-bold text-lg" style={{ color: colors.text_color }}>
                                         {restaurant.name}
                                     </h3>
-                                    <p className="text-sm text-gray-500 mt-1">Cardápio Digital</p>
+                                    <p className="text-sm text-gray-500 mt-1">Catálogo online</p>
                                     <Button
                                         className="w-full mt-4 text-white"
                                         style={{ backgroundColor: colors.primary_color }}
@@ -492,7 +496,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                 </div>
                             </div>
                             <p className="text-xs text-gray-500 mt-3 text-center">
-                                Prévia aproximada do cardápio
+                                Prévia aproximada da vitrine
                             </p>
                         </CardContent>
                     </Card>
@@ -525,7 +529,7 @@ export function CustomizationClient({ restaurant }: CustomizationClientProps) {
                                 size="sm"
                                 onClick={() => window.open(`/lp/${restaurant.slug}`, '_blank')}
                             >
-                                Visualizar Cardápio
+                                Ver página pública
                             </Button>
                         </CardContent>
                     </Card>

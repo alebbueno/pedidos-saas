@@ -24,12 +24,12 @@ export default async function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Bom dia, {restaurant.name} 👋</h1>
-                    <p className="text-gray-500 text-sm mt-1">Aqui está o resumo da sua loja hoje.</p>
+                    <p className="text-gray-500 text-sm mt-1">Aqui está o resumo das suas vendas hoje.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full animate-pulse ${restaurant.is_open ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                        {restaurant.is_open ? 'Loja Aberta' : 'Loja Fechada'}
+                        {restaurant.is_open ? 'Aberto para pedidos' : 'Fechado para novos pedidos'}
                     </span>
                     <Button variant="outline" size="sm" className="bg-white border-gray-200 text-gray-700 hover:bg-gray-50">
                         <Filter className="w-4 h-4 mr-2" />
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
                     <CardContent className="p-6">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-sm font-medium text-gray-500 mb-1">Entregas Agora</p>
+                                <p className="text-sm font-medium text-gray-500 mb-1">Envios em andamento</p>
                                 <h3 className="text-3xl font-bold text-gray-900">{stats.activeDeliveries}</h3>
                             </div>
                             <div className="p-2 bg-blue-50 rounded-lg">
@@ -220,9 +220,9 @@ export default async function DashboardPage() {
 
                                 const statusLabels: Record<string, string> = {
                                     pending: 'Pendente',
-                                    preparing: 'Preparando',
-                                    out_for_delivery: 'Em Entrega',
-                                    delivered: 'Entregue',
+                                    preparing: 'Em separação',
+                                    out_for_delivery: 'Em trânsito',
+                                    delivered: 'Concluído',
                                     canceled: 'Cancelado',
                                 }
 

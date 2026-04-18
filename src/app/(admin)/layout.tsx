@@ -9,7 +9,11 @@ export default async function AdminLayout({
     const restaurant = await getOwnerRestaurant()
 
     return (
-        <AdminShell restaurantId={restaurant?.id}>
+        <AdminShell
+            restaurantId={restaurant?.id}
+            restaurantName={restaurant?.name ?? undefined}
+            initialStoreOpen={restaurant?.is_open ?? true}
+        >
             {children}
         </AdminShell>
     )

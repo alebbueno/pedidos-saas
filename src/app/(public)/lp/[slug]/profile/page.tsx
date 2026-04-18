@@ -72,7 +72,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
         if (!customer) return
 
         setIsSaving(true)
-        const result = await findOrCreateCustomer(customer.phone, name, email)
+        const result = await findOrCreateCustomer(customer.phone, name, email, restaurant.id)
         if (result.success && result.customer) {
             setCustomer(result.customer)
         }
@@ -141,7 +141,7 @@ export default function ProfilePage({ params }: { params: Promise<{ slug: string
                         onClick={() => router.push(`/lp/${restaurant.slug}`)}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Voltar ao Cardápio
+                        Voltar à loja
                     </Button>
                     <div className="flex items-center gap-4">
                         <div

@@ -3,7 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 export function SolutionSection() {
     const benefits = [
         {
-            title: "Cardápio digital bonito e rápido",
+            title: "Catálogo digital bonito e rápido",
             desc: "Seus clientes acessam pelo celular sem instalar nada."
         },
         {
@@ -56,7 +56,7 @@ export function SolutionSection() {
                             {/* Placeholder for Solution Image/Screenshot */}
                             <div className="text-center p-8">
                                 <span className="block text-6xl mb-4">📱</span>
-                                <p className="text-slate-500 font-medium">Preview do Cardápio Digital</p>
+                                <p className="text-slate-500 font-medium">Preview da vitrine online</p>
                             </div>
                         </div>
                     </div>

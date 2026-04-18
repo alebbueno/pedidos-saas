@@ -37,7 +37,7 @@ export function Step3PaymentDelivery({ data, onChange }: Step3Props) {
                     <CreditCard className="w-8 h-8 text-green-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900">Pagamento e Entrega</h2>
-                <p className="text-slate-600 text-lg">Configure as formas de pagamento e taxas de entrega</p>
+                <p className="text-slate-600 text-lg">Configure pagamentos e taxa de entrega (quando aplicável)</p>
             </div>
 
             {/* Tip Card */}

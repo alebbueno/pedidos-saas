@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCustomerStore } from '@/store/customer-store'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -22,6 +22,15 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
     const logout = useCustomerStore((state) => state.logout)
     const pathname = usePathname()
 
+    // Sessão do cliente é por loja: evita "logado" de outra LP com o mesmo telefone no storage
+    useEffect(() => {
+        if (!customer) return
+        const scoped = customer.restaurant_id
+        if (!scoped || scoped !== restaurant.id) {
+            logout()
+        }
+    }, [customer, restaurant.id, logout])
+
     const primaryColor = restaurant.primary_color || '#F97316'
     const slug = restaurant.slug
 
@@ -33,13 +42,16 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
 
     return (
         <>
-            <div className="border-b bg-white sticky top-0 z-40 shadow-sm">
-                <div className="container mx-auto px-4 max-w-6xl">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Logo/Name */}
-                        <Link href={`/lp/${slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+            <div className="border-b border-stone-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-40 shadow-sm pt-[env(safe-area-inset-top,0px)] supports-[backdrop-filter]:bg-white/80">
+                <div className="container mx-auto px-3 sm:px-4 max-w-6xl">
+                    <div className="flex items-center justify-between min-h-[3.5rem] py-1.5 gap-2">
+                        {/* Logo/Name — área de toque ampla no mobile */}
+                        <Link
+                            href={`/lp/${slug}`}
+                            className="flex items-center gap-2 sm:gap-3 min-h-11 min-w-0 py-1 -ml-1 pl-1 pr-2 rounded-xl hover:opacity-90 active:opacity-80 transition-opacity group touch-manipulation"
+                        >
                             {restaurant.logo_url ? (
-                                <div className="w-8 h-8 relative rounded-full overflow-hidden border border-gray-100 shadow-sm">
+                                <div className="w-9 h-9 sm:w-8 sm:h-8 relative rounded-full overflow-hidden border border-stone-200 shadow-sm shrink-0">
                                     <img
                                         src={restaurant.logo_url}
                                         alt={restaurant.name}
@@ -48,20 +60,20 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
                                 </div>
                             ) : (
                                 <div
-                                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm"
+                                    className="w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0"
                                     style={{ backgroundColor: primaryColor }}
                                 >
                                     {restaurant.name.substring(0, 2).toUpperCase()}
                                 </div>
                             )}
-                            <span className="font-bold text-lg text-gray-800 group-hover:text-gray-600 transition-colors">
+                            <span className="font-bold text-base sm:text-lg text-stone-900 truncate max-w-[10rem] sm:max-w-none">
                                 {restaurant.name}
                             </span>
                         </Link>
 
                         {/* Navigation Links (Desktop) - Only show if logged in */}
                         {isLoggedIn && (
-                            <nav className="hidden md:flex items-center gap-8 bg-gray-50 px-6 py-2 rounded-full border border-gray-100">
+                            <nav className="hidden md:flex items-center gap-8 bg-stone-50 px-6 py-2 rounded-full border border-stone-200/80">
                                 {navLinks.map((link) => {
                                     const Icon = link.icon
                                     const isActive = pathname === link.href
@@ -71,7 +83,7 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
                                             href={link.href}
                                             className={cn(
                                                 "flex items-center gap-2 text-sm font-medium transition-all duration-200",
-                                                isActive ? "font-bold scale-105" : "text-gray-500 hover:text-gray-800"
+                                                isActive ? "font-bold" : "text-stone-500 hover:text-stone-900"
                                             )}
                                             style={isActive ? { color: primaryColor } : {}}
                                         >
@@ -88,7 +100,7 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
                             {!isLoggedIn ? (
                                 <Button
                                     onClick={() => setShowLoginModal(true)}
-                                    className="flex items-center gap-2 shadow-sm hover:shadow-md transition-all font-semibold rounded-full px-6"
+                                    className="flex items-center gap-2 min-h-11 h-11 px-5 sm:px-6 shadow-sm hover:shadow-md transition-shadow font-semibold rounded-full touch-manipulation"
                                     style={{ backgroundColor: primaryColor }}
                                 >
                                     <User className="w-4 h-4" />
@@ -97,16 +109,21 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
                             ) : (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="flex items-center gap-3 pl-2 pr-4 py-2 h-auto rounded-full hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all">
+                                        <Button
+                                            variant="ghost"
+                                            className="flex items-center gap-2 sm:gap-3 min-h-11 h-11 pl-1.5 pr-3 sm:pr-4 rounded-full hover:bg-stone-50 border border-transparent hover:border-stone-200/80 transition-colors touch-manipulation"
+                                        >
                                             <div
-                                                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                                                className="w-9 h-9 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0"
                                                 style={{ backgroundColor: primaryColor }}
                                             >
                                                 {customer?.name?.substring(0, 2).toUpperCase() || 'U'}
                                             </div>
-                                            <div className="flex flex-col items-start hidden md:flex">
-                                                <span className="text-xs text-gray-500 font-medium">Olá,</span>
-                                                <span className="text-sm font-bold text-gray-800 leading-none">{customer?.name?.split(' ')[0]}</span>
+                                            <div className="flex flex-col items-start hidden md:flex text-left">
+                                                <span className="text-xs text-stone-500 font-medium">Olá,</span>
+                                                <span className="text-sm font-bold text-stone-900 leading-none truncate max-w-[8rem]">
+                                                    {customer?.name?.split(' ')[0]}
+                                                </span>
                                             </div>
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -116,10 +133,13 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
                                             {navLinks.map((link) => {
                                                 const Icon = link.icon
                                                 return (
-                                                    <DropdownMenuItem key={link.href} asChild className="rounded-lg mb-1 focus:bg-gray-50">
-                                                        <Link href={link.href} className="flex items-center gap-3 py-2 cursor-pointer font-medium text-gray-700">
-                                                            <div className="p-1.5 rounded-md bg-gray-50">
-                                                                <Icon className="w-4 h-4 text-gray-500" />
+                                                    <DropdownMenuItem key={link.href} asChild className="rounded-lg mb-1 focus:bg-stone-50">
+                                                        <Link
+                                                            href={link.href}
+                                                            className="flex items-center gap-3 min-h-11 py-2 cursor-pointer font-medium text-stone-800 touch-manipulation"
+                                                        >
+                                                            <div className="p-1.5 rounded-md bg-stone-100">
+                                                                <Icon className="w-4 h-4 text-stone-600" />
                                                             </div>
                                                             {link.label}
                                                         </Link>
@@ -143,7 +163,11 @@ export default function CustomerNavbar({ restaurant }: CustomerNavbarProps) {
                 </div>
             </div>
 
-            <CustomerLoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
+            <CustomerLoginModal
+                open={showLoginModal}
+                onOpenChange={setShowLoginModal}
+                restaurantId={restaurant.id}
+            />
         </>
     )
 }

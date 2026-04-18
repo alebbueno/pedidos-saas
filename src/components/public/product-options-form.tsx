@@ -7,13 +7,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Minus, Plus, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/store/cart-store'
-import { Product, Restaurant } from '@/types'
+import { Product, Restaurant, Category } from '@/types'
+import { canShowHalfAndHalf } from '@/lib/segment-rules'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
+import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
 
 interface ProductOptionsFormProps {
     product: Product & { product_option_groups: any[] }
     restaurant: Restaurant
+    category?: Category | null
     primaryColor: string
     textColor: string
 }
@@ -21,9 +25,11 @@ interface ProductOptionsFormProps {
 export default function ProductOptionsForm({
     product,
     restaurant,
+    category,
     primaryColor,
     textColor
 }: ProductOptionsFormProps) {
+    const ordering = useRestaurantOrderingOpen(restaurant)
     const router = useRouter()
     const addToCart = useCartStore((state) => state.addItem)
 
@@ -283,8 +289,14 @@ export default function ProductOptionsForm({
 
     return (
         <div className="space-y-6 pb-32">
+            <ClosedStoreBanner restaurant={restaurant} />
             {/* Half and Half Toggle */}
-            {product.allows_half_and_half && (
+            {canShowHalfAndHalf(
+                restaurant.segment,
+                category?.allows_half_and_half,
+                product.allows_half_and_half,
+                product.product_type
+            ) && (
                 <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 animate-in slide-in-from-bottom-4 duration-300">
                     <div className="flex items-center justify-between">
                         <div>
@@ -331,7 +343,7 @@ export default function ProductOptionsForm({
             <div className="space-y-2 animate-in slide-in-from-bottom-4 duration-500">
                 <Label>Observação</Label>
                 <Textarea
-                    placeholder="Ex: Tirar cebola, bem passado..."
+                    placeholder="Ex: embalagem para presente, frágil, observações de entrega..."
                     value={observation}
                     onChange={(e) => setObservation(e.target.value)}
                     className="resize-none"
@@ -368,8 +380,10 @@ export default function ProductOptionsForm({
                         <Button
                             className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all flex justify-between px-6 text-white"
                             onClick={handleAddToCart}
-                            disabled={!isValid}
-                            style={{ backgroundColor: primaryColor }}
+                            disabled={!isValid || !ordering.acceptingOrders}
+                            style={{
+                                backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
+                            }}
                         >
                             <span className="flex items-center gap-2">
                                 <ShoppingBag className="w-5 h-5" />

@@ -16,15 +16,17 @@ import { useRouter } from 'next/navigation'
 import { Loader2, ArrowLeft, ArrowRight, User, MapPin, CreditCard, CheckCircle, Phone, Mail, Home, Truck, Store } from 'lucide-react'
 import StepIndicator from './step-indicator'
 import { cn } from '@/lib/utils'
+import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
 
 const STEPS = [
-    { number: 1, title: 'Seus Dados', description: 'Identificação' },
-    { number: 2, title: 'Entrega', description: 'Endereço' },
-    { number: 3, title: 'Pagamento', description: 'Forma de pagamento' },
-    { number: 4, title: 'Confirmar', description: 'Revisar pedido' }
+    { number: 1, title: 'Seus dados', description: 'Contato' },
+    { number: 2, title: 'Recebimento', description: 'Envio ou retirada' },
+    { number: 3, title: 'Pagamento', description: 'Como pagar' },
+    { number: 4, title: 'Confirmar', description: 'Revisar tudo' }
 ]
 
 export default function CheckoutForm({ restaurant }: { restaurant: Restaurant }) {
+    const ordering = useRestaurantOrderingOpen(restaurant)
     const router = useRouter()
     const items = useCartStore((state) => state.items)
     const total = useCartStore((state) => state.total)
@@ -76,7 +78,7 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
             <div className="text-center py-16">
                 <p className="text-lg text-gray-600 mb-4">Seu carrinho está vazio.</p>
                 <Button onClick={() => router.push(`/lp/${restaurant.slug}`)}>
-                    Ver Cardápio
+                    Voltar ao catálogo
                 </Button>
             </div>
         )
@@ -110,7 +112,7 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
         // Only search if phone has at least 10 digits
         if (numbersOnly.length >= 10) {
             setIsLoadingCustomer(true)
-            const result = await getCustomerByPhone(numbersOnly)
+            const result = await getCustomerByPhone(numbersOnly, restaurant.id)
 
             if (result.success && result.customer) {
                 setCustomer(result.customer)
@@ -151,6 +153,11 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
     }
 
     const handleSubmit = async () => {
+        if (!ordering.acceptingOrders) {
+            alert(`${ordering.headline}\n\n${ordering.detail}`)
+            return
+        }
+
         setIsSubmitting(true)
 
         try {
@@ -210,6 +217,12 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
 
             const result = await createOrder(orderData)
 
+            if (result.error) {
+                alert(result.error)
+                setIsSubmitting(false)
+                return
+            }
+
             if (result.success && result.order) {
                 // Build WhatsApp message
                 const itemsList = items.map(item => {
@@ -228,7 +241,7 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
                     }
                 }).join('\\n')
 
-                const paymentText = paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'card_machine' ? 'Cartão na entrega' : `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ''}`
+                const paymentText = paymentMethod === 'pix' ? 'PIX' : paymentMethod === 'card_machine' ? 'Cartão na entrega ou retirada' : `Dinheiro${changeFor ? ` (Troco para R$ ${changeFor})` : ''}`
 
                 const message = `*Novo Pedido #${result.order.id.slice(0, 8)}*
 
@@ -239,10 +252,10 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
 ${itemsList}
 
 *Subtotal:* R$ ${cartTotal.toFixed(2)}
-*Entrega:* ${deliveryFee > 0 ? `R$ ${deliveryFee.toFixed(2)}` : 'Grátis'}
+*Taxa de envio:* ${deliveryFee > 0 ? `R$ ${deliveryFee.toFixed(2)}` : 'Grátis'}
 *TOTAL:* R$ ${finalTotal.toFixed(2)}
 
-*Tipo:* ${deliveryType === 'delivery' ? 'Entrega' : 'Retirada'}
+*Tipo:* ${deliveryType === 'delivery' ? 'Envio' : 'Retirada no local'}
 ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
 
 *Pagamento:* ${paymentText}`
@@ -287,7 +300,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                 <div className="space-y-2">
                                     <Label className="flex items-center gap-2">
                                         <Phone className="w-4 h-4" />
-                                        WhatsApp (com DDD)
+                                        Celular / WhatsApp (com DDD)
                                     </Label>
                                     <Input
                                         value={phone}
@@ -304,7 +317,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                     <Input
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder="Seu nome"
+                                        placeholder="Nome completo"
                                         className="h-12 text-lg"
                                     />
                                 </div>
@@ -332,7 +345,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <MapPin className="w-5 h-5" style={{ color: primaryColor }} />
-                                    Entrega
+                                    Recebimento
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -349,7 +362,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                         style={deliveryType === 'delivery' ? { borderColor: primaryColor } : {}}
                                     >
                                         <Truck className="w-8 h-8" style={deliveryType === 'delivery' ? { color: primaryColor } : {}} />
-                                        <span className="font-semibold">Entrega</span>
+                                        <span className="font-semibold">Envio</span>
                                         <span className="text-sm font-semibold" style={deliveryType === 'delivery' ? { color: primaryColor } : {}}>
                                             + R$ {restaurant.delivery_fee.toFixed(2)}
                                         </span>
@@ -501,7 +514,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                                             onChange={(e) => setSaveAddress(e.target.checked)}
                                                             className="rounded"
                                                         />
-                                                        Salvar este endereço para próximos pedidos
+                                                        Salvar este endereço para próximas compras
                                                     </label>
                                                 )}
 
@@ -570,7 +583,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                         <RadioGroupItem value="card_machine" id="card" />
                                         <Label htmlFor="card" className="flex-1 cursor-pointer font-semibold">
                                             Cartão
-                                            <p className="text-sm text-gray-500 font-normal">Maquininha na entrega/retirada</p>
+                                            <p className="text-sm text-gray-500 font-normal">Cartão na maquininha no ato da entrega ou retirada</p>
                                         </Label>
                                     </div>
 
@@ -620,7 +633,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                 <div className="space-y-2">
                                     <h4 className="font-semibold flex items-center gap-2">
                                         <User className="w-4 h-4" />
-                                        Seus Dados
+                                        Seus dados
                                     </h4>
                                     <div className="bg-gray-50 p-4 rounded-lg space-y-1 text-sm">
                                         <p><strong>Nome:</strong> {name}</p>
@@ -634,10 +647,10 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                 <div className="space-y-2">
                                     <h4 className="font-semibold flex items-center gap-2">
                                         <MapPin className="w-4 h-4" />
-                                        Entrega
+                                        Recebimento
                                     </h4>
                                     <div className="bg-gray-50 p-4 rounded-lg space-y-1 text-sm">
-                                        <p><strong>Tipo:</strong> {deliveryType === 'delivery' ? 'Entrega' : 'Retirada no Local'}</p>
+                                        <p><strong>Tipo:</strong> {deliveryType === 'delivery' ? 'Envio' : 'Retirada no local'}</p>
                                         {deliveryType === 'delivery' && (
                                             <p><strong>Endereço:</strong> {
                                                 newAddress.street
@@ -689,6 +702,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                             <Button
                                 onClick={handleNext}
                                 disabled={
+                                    !ordering.acceptingOrders ||
                                     (currentStep === 1 && !canProceedStep1) ||
                                     (currentStep === 2 && !canProceedStep2) ||
                                     (currentStep === 3 && !canProceedStep3)
@@ -703,7 +717,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                         ) : (
                             <Button
                                 onClick={handleSubmit}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !ordering.acceptingOrders}
                                 className="flex-1 text-white"
                                 size="lg"
                                 style={{ backgroundColor: primaryColor }}
@@ -714,7 +728,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                         Finalizando...
                                     </>
                                 ) : (
-                                    'Finalizar Pedido'
+                                    'Finalizar compra'
                                 )}
                             </Button>
                         )}
@@ -769,7 +783,7 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
                                     <span>R$ {cartTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span>Entrega</span>
+                                    <span>Taxa de envio</span>
                                     <span>{deliveryFee > 0 ? `R$ ${deliveryFee.toFixed(2)}` : 'Grátis'}</span>
                                 </div>
                                 <div className="flex justify-between font-bold text-lg pt-2 border-t">

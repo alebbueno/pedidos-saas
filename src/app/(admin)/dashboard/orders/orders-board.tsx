@@ -65,8 +65,8 @@ export default function OrdersBoard({ initialOrders, restaurantId }: OrdersBoard
 
     const columns = [
         { id: 'pending', label: 'Novos', color: 'bg-blue-100 text-blue-800' },
-        { id: 'preparing', label: 'Em Preparo', color: 'bg-yellow-100 text-yellow-800' },
-        { id: 'delivery', label: 'Em Entrega', color: 'bg-orange-100 text-orange-800' },
+        { id: 'preparing', label: 'Em separação', color: 'bg-yellow-100 text-yellow-800' },
+        { id: 'delivery', label: 'Em trânsito', color: 'bg-orange-100 text-orange-800' },
         { id: 'completed', label: 'Finalizados', color: 'bg-green-100 text-green-800' },
     ]
 

@@ -7,9 +7,12 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { useCartStore } from '@/store/cart-store'
-import { Product, ProductOptionGroup, ProductOption, Restaurant } from '@/types'
+import { Product, ProductOptionGroup, ProductOption, Restaurant, Category } from '@/types'
+import { canShowHalfAndHalf } from '@/lib/segment-rules'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
+import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
+import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
 
 interface ProductModalProps {
     product: Product & { product_option_groups: (ProductOptionGroup & { options: ProductOption[] })[] }
@@ -17,10 +20,12 @@ interface ProductModalProps {
     onClose: () => void
     restaurantId: string
     restaurant: Restaurant
+    category?: Category | null
     primaryColor?: string
 }
 
-export default function ProductModal({ product, isOpen, onClose, restaurantId, restaurant, primaryColor = '#F97316' }: ProductModalProps) {
+export default function ProductModal({ product, isOpen, onClose, restaurantId, restaurant, category, primaryColor = '#F97316' }: ProductModalProps) {
+    const ordering = useRestaurantOrderingOpen(restaurant)
     const addToCart = useCartStore((state) => state.addItem)
     const [quantity, setQuantity] = useState(1)
     const [isHalfAndHalf, setIsHalfAndHalf] = useState(false)
@@ -296,6 +301,15 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                 <DialogHeader>
                     <DialogTitle>{product.name}</DialogTitle>
                     <DialogDescription>{product.description}</DialogDescription>
+                    {product.is_made_to_order &&
+                        product.made_to_order_lead_days != null &&
+                        product.made_to_order_lead_days > 0 && (
+                            <p className="text-sm text-amber-950 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 text-left">
+                                <span className="font-semibold">Encomenda:</span> prazo estimado de{' '}
+                                <strong>{product.made_to_order_lead_days}</strong>{' '}
+                                {product.made_to_order_lead_days === 1 ? 'dia' : 'dias'} para produção ou separação.
+                            </p>
+                        )}
                 </DialogHeader>
 
                 {product.image_url && (
@@ -304,8 +318,15 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                     </div>
                 )}
 
+                <ClosedStoreBanner restaurant={restaurant} className="mb-4" />
+
                 {/* Half and Half Toggle */}
-                {product.allows_half_and_half && (
+                {canShowHalfAndHalf(
+                    restaurant.segment,
+                    category?.allows_half_and_half,
+                    product.allows_half_and_half,
+                    product.product_type
+                ) && (
                     <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 mb-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -350,7 +371,7 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                     <div className="space-y-2">
                         <Label>Observação</Label>
                         <Textarea
-                            placeholder="Ex: Tirar cebola, bem passado..."
+                            placeholder="Ex: embalagem para presente, frágil, observações de entrega..."
                             value={observation}
                             onChange={(e) => setObservation(e.target.value)}
                         />
@@ -382,8 +403,10 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                         <Button
                             className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all flex justify-between px-6 text-white"
                             onClick={handleAddToCart}
-                            disabled={!isValid}
-                            style={{ backgroundColor: primaryColor }}
+                            disabled={!isValid || !ordering.acceptingOrders}
+                            style={{
+                                backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
+                            }}
                         >
                             <span>Adicionar</span>
                             <span>R$ {totalPrice.toFixed(2)}</span>

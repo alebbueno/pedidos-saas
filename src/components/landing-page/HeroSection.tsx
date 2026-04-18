@@ -16,12 +16,12 @@ export function HeroSection() {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 animate-fade-in-up delay-100">
-                        Seu delivery próprio,{" "}
-                        <span className="text-orange-500">sem taxas</span> e direto no WhatsApp
+                        Suas vendas no WhatsApp,{" "}
+                        <span className="text-orange-500">sem taxas</span> por pedido
                     </h1>
 
                     <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-200">
-                        Crie seu cardápio digital, receba pedidos online e automatize o atendimento do seu restaurante em poucos minutos.
+                        Monte seu catálogo online, receba pedidos e organize o atendimento do seu negócio em poucos minutos.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up delay-300">

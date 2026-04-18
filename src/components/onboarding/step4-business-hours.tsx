@@ -45,7 +45,7 @@ export function Step4BusinessHours({ data, onChange }: Step4Props) {
                     <Clock className="w-8 h-8 text-blue-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900">Horário de Atendimento</h2>
-                <p className="text-slate-600 text-lg">Defina quando seu restaurante estará aberto para pedidos</p>
+                <p className="text-slate-600 text-lg">Defina quando sua loja aceita pedidos</p>
             </div>
 
             {/* Tip Card */}

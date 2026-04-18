@@ -7,9 +7,9 @@ export function FaqSection() {
     const faqs = [
         { question: "Preciso pagar taxa por pedido?", answer: "Não. O Pedidos SaaS não cobra nenhuma comissão sobre suas vendas. O lucro é 100% seu." },
         { question: "Posso cancelar quando quiser?", answer: "Sim. Nossos planos são mensais e não exigem fidelidade. Você pode cancelar a qualquer momento sem custos extras." },
-        { question: "Funciona para pizzaria?", answer: "Sim! Nosso sistema permite cadastrar variações (tamanhos, bordas, sabores) e adicionais, perfeito para pizzarias e hamburguerias." },
+        { question: "Serve para loja de roupa ou artesanato?", answer: "Sim. Você cadastra categorias, fotos, variações (tamanho, cor, etc.) e opcionais conforme o tipo de produto — de alimentação a moda, varejo ou peças únicas." },
         { question: "A IA responde sozinha?", answer: "Sim. No plano Smart, o agente de IA atende seus clientes no WhatsApp, tira dúvidas e anota o pedido automaticamente." },
-        { question: "Preciso de computador para usar?", answer: "Não. Todo o sistema é responsivo e você pode gerenciar seus pedidos e cardápio diretamente pelo celular." },
+        { question: "Preciso de computador para usar?", answer: "Não. Todo o sistema é responsivo e você pode gerenciar pedidos e catálogo diretamente pelo celular." },
     ];
 
     return (

@@ -38,7 +38,7 @@ export function Step2Customization({ data, onChange }: Step2Props) {
                     <Palette className="w-8 h-8 text-purple-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-slate-900">Personalização</h2>
-                <p className="text-slate-600 text-lg">Deixe seu cardápio com a cara do seu negócio</p>
+                <p className="text-slate-600 text-lg">Deixe sua vitrine online com a cara do seu negócio</p>
             </div>
 
             {/* Tip Card */}
@@ -53,7 +53,7 @@ export function Step2Customization({ data, onChange }: Step2Props) {
             <div className="space-y-6">
                 {/* Logo Upload */}
                 <div className="space-y-3">
-                    <Label className="text-slate-700 font-medium">Logo do Restaurante</Label>
+                    <Label className="text-slate-700 font-medium">Logo da loja</Label>
 
                     <div className="flex items-start gap-4">
                         {/* Preview */}
@@ -143,7 +143,7 @@ export function Step2Customization({ data, onChange }: Step2Props) {
 
                 {/* Preview Card */}
                 <div className="space-y-3">
-                    <Label className="text-slate-700 font-medium">Prévia do Cardápio</Label>
+                    <Label className="text-slate-700 font-medium">Prévia da loja</Label>
                     <div
                         className="rounded-2xl p-6 border-2 border-slate-200"
                         style={{ backgroundColor: `${data.primaryColor}10` }}
@@ -153,8 +153,8 @@ export function Step2Customization({ data, onChange }: Step2Props) {
                                 <img src={logoPreview} alt="Logo" className="w-16 h-16 rounded-xl object-cover" />
                             )}
                             <div>
-                                <h3 className="font-bold text-lg text-slate-900">Seu Restaurante</h3>
-                                <p className="text-sm text-slate-600">Cardápio Digital</p>
+                                <h3 className="font-bold text-lg text-slate-900">Sua vitrine</h3>
+                                <p className="text-sm text-slate-600">Catálogo online</p>
                             </div>
                         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Utensils, Coffee, Pizza } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
 export function FaqNew() {
@@ -23,14 +23,12 @@ export function FaqNew() {
                         <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-6">
                             Integração e Tecnologia
                         </p>
-                        <div className="flex flex-wrap justify-center gap-8 md:gap-12 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-                            <div className="text-3xl font-black text-slate-300">BAIXO</div>
-                            <div className="text-3xl font-black text-slate-300">Bob&apos;s</div>
-                            <div className="text-2xl font-serif italic text-slate-300">Pepetino</div>
-                            <div className="text-3xl font-bold text-slate-300">Sushi</div>
-                            <div className="text-3xl font-black text-slate-300">SUBWAY</div>
-                            <div className="text-3xl font-black text-slate-300">PizzaHut</div>
-                            <div className="text-3xl font-black text-slate-300">+PREÇO</div>
+                        <div className="flex flex-wrap justify-center gap-6 md:gap-10 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                            <div className="text-lg font-bold text-slate-400 uppercase tracking-wider">Alimentação</div>
+                            <div className="text-lg font-bold text-slate-400 uppercase tracking-wider">Moda</div>
+                            <div className="text-lg font-bold text-slate-400 uppercase tracking-wider">Artesanato</div>
+                            <div className="text-lg font-bold text-slate-400 uppercase tracking-wider">Varejo</div>
+                            <div className="text-lg font-bold text-slate-400 uppercase tracking-wider">Serviços</div>
                         </div>
                     </div>
                 </ScrollReveal>

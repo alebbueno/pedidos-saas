@@ -19,6 +19,9 @@ import {
     createFirstProduct,
     completeOnboarding
 } from '@/actions/onboarding-actions'
+import type { BusinessSegment } from '@/types'
+import type { Step1RestaurantData } from '@/components/onboarding/step1-restaurant-info'
+import { isPositiveBrlMoney } from '@/lib/money-brl'
 
 const STEPS = [
     'Informações',
@@ -36,14 +39,16 @@ export default function OnboardingPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [restaurantId, setRestaurantId] = useState<string | null>(null)
     const [categoryId, setCategoryId] = useState<string | null>(null)
+    /** Passo 1: slug válido, formato ok e livre no banco (null = vazio ou checando) */
+    const [step1SlugValid, setStep1SlugValid] = useState<boolean | null>(null)
 
     // Step 1 data
-    const [step1Data, setStep1Data] = useState({
+    const [step1Data, setStep1Data] = useState<Step1RestaurantData>({
+        segment: 'food' as BusinessSegment,
         name: '',
         slug: '',
         whatsapp: '',
         description: '',
-        // Address fields
         cep: '',
         street: '',
         number: '',
@@ -125,6 +130,7 @@ export default function OnboardingPage() {
     const canProceedFromStep1 = () => {
         return step1Data.name.trim() !== '' &&
             step1Data.slug.trim() !== '' &&
+            step1SlugValid === true &&
             step1Data.whatsapp.trim() !== '' &&
             step1Data.cep.trim() !== '' &&
             step1Data.street.trim() !== '' &&
@@ -153,7 +159,7 @@ export default function OnboardingPage() {
     }
 
     const canProceedFromStep6 = () => {
-        return step6Data.name.trim() !== '' && step6Data.basePrice !== ''
+        return step6Data.name.trim() !== '' && isPositiveBrlMoney(step6Data.basePrice)
     }
 
     const canGoNext = () => {
@@ -262,7 +268,13 @@ export default function OnboardingPage() {
     const renderStep = () => {
         switch (currentStep) {
             case 1:
-                return <Step1RestaurantInfo data={step1Data} onChange={setStep1Data} />
+                return (
+                    <Step1RestaurantInfo
+                        data={step1Data}
+                        onChange={setStep1Data}
+                        onSlugValidityChange={setStep1SlugValid}
+                    />
+                )
             case 2:
                 return <Step2Customization data={step2Data} onChange={setStep2Data} />
             case 3:

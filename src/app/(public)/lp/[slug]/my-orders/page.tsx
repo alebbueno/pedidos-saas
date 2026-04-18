@@ -5,7 +5,7 @@ import { useCustomerStore } from '@/store/customer-store'
 import { getCustomerOrders } from '@/actions/customer'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Package, Clock, CheckCircle, XCircle, MapPin, ArrowLeft } from 'lucide-react'
+import { Loader2, Package, Clock, CheckCircle, XCircle, MapPin, ArrowLeft, Truck } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Restaurant } from '@/types'
 import { getRestaurantBySlug } from '@/actions/restaurant'
@@ -55,37 +55,125 @@ export default function MyOrdersPage({ params }: { params: Promise<{ slug: strin
 
     const primaryColor = restaurant.primary_color || '#F97316'
 
-    const getStatusInfo = (status: string) => {
-        switch (status) {
-            case 'new':
-                return { label: 'Novo', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100' }
-            case 'confirmed':
-                return { label: 'Confirmado', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' }
-            case 'preparing':
-                return { label: 'Preparando', icon: Package, color: 'text-orange-600', bg: 'bg-orange-100' }
-            case 'ready':
-                return { label: 'Pronto', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' }
-            case 'delivered':
-                return { label: 'Entregue', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' }
-            case 'cancelled':
-                return { label: 'Cancelado', icon: XCircle, color: 'text-red-600', bg: 'bg-red-100' }
-            default:
-                return { label: status, icon: Package, color: 'text-gray-600', bg: 'bg-gray-100' }
+    type StatusPresentation = {
+        label: string
+        hint: string
+        icon: typeof Package
+        color: string
+        bg: string
+    }
+
+    const getStatusInfo = (rawStatus: string | null | undefined, deliveryType: string | null | undefined): StatusPresentation => {
+        const s = (rawStatus || 'pending').toLowerCase().trim().replace(/-/g, '_')
+        const isPickup = deliveryType === 'pickup'
+
+        const map: Record<string, StatusPresentation> = {
+            pending: {
+                label: 'Pedido recebido',
+                hint: 'A loja já recebeu seu pedido e em breve atualiza o próximo passo.',
+                icon: Clock,
+                color: 'text-blue-700',
+                bg: 'bg-blue-100',
+            },
+            new: {
+                label: 'Pedido recebido',
+                hint: 'A loja já recebeu seu pedido e em breve atualiza o próximo passo.',
+                icon: Clock,
+                color: 'text-blue-700',
+                bg: 'bg-blue-100',
+            },
+            confirmed: {
+                label: 'Confirmado',
+                hint: 'A loja confirmou seu pedido e vai seguir com a preparação.',
+                icon: CheckCircle,
+                color: 'text-emerald-700',
+                bg: 'bg-emerald-100',
+            },
+            preparing: {
+                label: 'Em separação',
+                hint: 'Estamos separando ou preparando seus itens com carinho.',
+                icon: Package,
+                color: 'text-amber-700',
+                bg: 'bg-amber-100',
+            },
+            ready: {
+                label: isPickup ? 'Pronto para retirada' : 'Pronto',
+                hint: isPickup ? 'Pode ir buscar seu pedido no balcão, conforme combinado com a loja.' : 'Seu pedido está pronto para a próxima etapa.',
+                icon: CheckCircle,
+                color: 'text-teal-700',
+                bg: 'bg-teal-100',
+            },
+            delivery: {
+                label: isPickup ? 'Saiu para retirada' : 'A caminho',
+                hint: isPickup
+                    ? 'A loja marcou que seu pedido seguiu para retirada ou está liberado.'
+                    : 'Seu pedido está a caminho do endereço informado.',
+                icon: Truck,
+                color: 'text-orange-700',
+                bg: 'bg-orange-100',
+            },
+            out_for_delivery: {
+                label: isPickup ? 'Saiu para retirada' : 'A caminho',
+                hint: isPickup
+                    ? 'A loja marcou que seu pedido seguiu para retirada ou está liberado.'
+                    : 'Seu pedido está a caminho do endereço informado.',
+                icon: Truck,
+                color: 'text-orange-700',
+                bg: 'bg-orange-100',
+            },
+            completed: {
+                label: 'Concluído',
+                hint: 'Pedido finalizado. Obrigado pela preferência!',
+                icon: CheckCircle,
+                color: 'text-green-700',
+                bg: 'bg-green-100',
+            },
+            delivered: {
+                label: 'Concluído',
+                hint: 'Pedido finalizado. Obrigado pela preferência!',
+                icon: CheckCircle,
+                color: 'text-green-700',
+                bg: 'bg-green-100',
+            },
+            canceled: {
+                label: 'Cancelado',
+                hint: 'Este pedido foi cancelado. Em caso de dúvida, fale com a loja.',
+                icon: XCircle,
+                color: 'text-red-700',
+                bg: 'bg-red-100',
+            },
+            cancelled: {
+                label: 'Cancelado',
+                hint: 'Este pedido foi cancelado. Em caso de dúvida, fale com a loja.',
+                icon: XCircle,
+                color: 'text-red-700',
+                bg: 'bg-red-100',
+            },
         }
+
+        return (
+            map[s] ?? {
+                label: 'Em andamento',
+                hint: 'Estamos processando seu pedido. Volte em instantes para ver a atualização.',
+                icon: Package,
+                color: 'text-gray-700',
+                bg: 'bg-gray-100',
+            }
+        )
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-stone-50 to-stone-100">
             {/* Header Section */}
             <div className="bg-white border-b shadow-sm">
-                <div className="container mx-auto px-4 max-w-4xl py-8">
+                <div className="container mx-auto max-w-4xl px-3 sm:px-4 py-6 sm:py-8">
                     <Button
                         variant="ghost"
-                        className="mb-6 pl-0 hover:bg-transparent hover:opacity-70 text-gray-500"
+                        className="mb-4 sm:mb-6 min-h-11 -ml-1 px-2 hover:bg-stone-100/80 text-stone-600 rounded-xl touch-manipulation"
                         onClick={() => router.push(`/lp/${restaurant.slug}`)}
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Voltar ao Cardápio
+                        Voltar à loja
                     </Button>
                     <div className="flex items-center gap-3 mb-2">
                         <div
@@ -103,7 +191,7 @@ export default function MyOrdersPage({ params }: { params: Promise<{ slug: strin
             </div>
 
             {/* Content */}
-            <div className="container mx-auto px-4 max-w-4xl py-8">
+            <div className="container mx-auto max-w-4xl px-3 sm:px-4 py-6 sm:py-8">
                 {isLoading ? (
                     <div className="flex flex-col justify-center items-center py-20">
                         <Loader2 className="w-12 h-12 animate-spin mb-4" style={{ color: primaryColor }} />
@@ -126,36 +214,36 @@ export default function MyOrdersPage({ params }: { params: Promise<{ slug: strin
                                 className="shadow-lg"
                                 style={{ backgroundColor: primaryColor }}
                             >
-                                Ver Cardápio
+                                Ver loja
                             </Button>
                         </CardContent>
                     </Card>
                 ) : (
                     <div className="space-y-4">
                         {orders.map((order) => {
-                            const statusInfo = getStatusInfo(order.status)
+                            const statusInfo = getStatusInfo(order.status, order.delivery_type)
                             const StatusIcon = statusInfo.icon
 
                             return (
                                 <Card
                                     key={order.id}
-                                    className="hover:shadow-lg transition-all duration-200 border-l-4"
+                                    className="overflow-hidden hover:shadow-lg transition-shadow duration-200 border border-stone-200/80 border-l-4"
                                     style={{ borderLeftColor: primaryColor }}
                                 >
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex items-center gap-3">
+                                    <CardHeader className="space-y-4 pb-4 pt-5 sm:pb-3 sm:pt-6">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                                            <div className="flex min-w-0 flex-1 gap-3">
                                                 <div
-                                                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                                                    className="h-12 w-12 shrink-0 rounded-xl flex items-center justify-center"
                                                     style={{ backgroundColor: `${primaryColor}15` }}
                                                 >
-                                                    <Package className="w-6 h-6" style={{ color: primaryColor }} />
+                                                    <Package className="h-6 w-6" style={{ color: primaryColor }} />
                                                 </div>
-                                                <div>
-                                                    <CardTitle className="text-lg font-bold">
+                                                <div className="min-w-0 flex-1">
+                                                    <CardTitle className="text-base font-bold leading-snug sm:text-lg">
                                                         Pedido #{order.id.slice(0, 8).toUpperCase()}
                                                     </CardTitle>
-                                                    <p className="text-sm text-gray-500 mt-0.5">
+                                                    <p className="mt-1 text-sm text-stone-500 leading-relaxed">
                                                         {new Date(order.created_at).toLocaleDateString('pt-BR', {
                                                             day: '2-digit',
                                                             month: 'long',
@@ -166,17 +254,26 @@ export default function MyOrdersPage({ params }: { params: Promise<{ slug: strin
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${statusInfo.bg} flex-shrink-0`}>
-                                                <StatusIcon className={`w-4 h-4 ${statusInfo.color}`} />
-                                                <span className={`text-sm font-bold ${statusInfo.color}`}>
-                                                    {statusInfo.label}
-                                                </span>
+                                            <div className="min-w-0 w-full border-t border-stone-100 pt-3 sm:w-auto sm:max-w-xs sm:border-t-0 sm:pt-0 sm:shrink-0">
+                                                <div
+                                                    className={`flex w-full max-w-full flex-wrap items-center gap-2 rounded-full px-3 py-2 sm:w-fit sm:max-w-none ${statusInfo.bg}`}
+                                                >
+                                                    <StatusIcon className={`h-4 w-4 shrink-0 ${statusInfo.color}`} />
+                                                    <span
+                                                        className={`min-w-0 flex-1 text-sm font-bold leading-snug text-pretty break-words sm:flex-none ${statusInfo.color}`}
+                                                    >
+                                                        {statusInfo.label}
+                                                    </span>
+                                                </div>
+                                                <p className="mt-2 text-left text-sm leading-relaxed text-stone-600 text-pretty break-words sm:text-right">
+                                                    {statusInfo.hint}
+                                                </p>
                                             </div>
                                         </div>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {/* Order Details Grid */}
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
+                                        <div className="grid grid-cols-1 gap-3 rounded-xl bg-stone-50 p-4 min-[380px]:grid-cols-2 min-[380px]:gap-4">
                                             <div>
                                                 <p className="text-xs text-gray-500 mb-1">Tipo de Entrega</p>
                                                 <p className="font-semibold text-gray-900">

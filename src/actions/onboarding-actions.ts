@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { slugifyFromName } from '@/lib/slug'
+import { parseBrlMoneyToNumber } from '@/lib/money-brl'
 
 // Step 1: Create restaurant with basic info
 export async function createRestaurantBasicInfo(data: {
@@ -9,6 +11,8 @@ export async function createRestaurantBasicInfo(data: {
     slug: string
     whatsapp: string
     description?: string
+    /** Segmento de negócio (multi-vertical) — default food */
+    segment?: 'food' | 'fashion' | 'handcraft' | 'retail'
     // Address fields
     cep: string
     street: string
@@ -25,12 +29,17 @@ export async function createRestaurantBasicInfo(data: {
         return { success: false, error: 'Usuário não autenticado' }
     }
 
+    const slug = slugifyFromName(data.slug)
+    if (!slug) {
+        return { success: false, error: 'Informe um link válido para a loja.' }
+    }
+
     // Check if slug is available
     const { data: existing } = await supabase
         .from('restaurants')
         .select('id')
-        .eq('slug', data.slug)
-        .single()
+        .eq('slug', slug)
+        .maybeSingle()
 
     if (existing) {
         return { success: false, error: 'Este link já está em uso. Escolha outro.' }
@@ -51,7 +60,7 @@ export async function createRestaurantBasicInfo(data: {
         .from('restaurants')
         .insert({
             name: data.name,
-            slug: data.slug,
+            slug,
             whatsapp_number: data.whatsapp,
             address: fullAddress,
             // Detailed address fields
@@ -65,7 +74,8 @@ export async function createRestaurantBasicInfo(data: {
             description: data.description,
             owner_id: user.id,
             subscription_status: 'trialing',
-            onboarding_step: 1
+            onboarding_step: 1,
+            segment: data.segment ?? 'food',
         })
         .select()
         .single()
@@ -218,6 +228,11 @@ export async function createFirstProduct(
 ) {
     const supabase = await createClient()
 
+    const price = parseBrlMoneyToNumber(data.basePrice)
+    if (!Number.isFinite(price) || price <= 0) {
+        return { success: false, error: 'Informe um preço válido maior que zero.' }
+    }
+
     const { error } = await supabase
         .from('products')
         .insert({
@@ -225,9 +240,10 @@ export async function createFirstProduct(
             category_id: categoryId,
             name: data.name,
             description: data.description,
-            base_price: parseFloat(data.basePrice) || 0,
+            base_price: price,
             image_url: data.imageUrl,
-            is_active: true
+            is_active: true,
+            product_type: 'customizable',
         })
 
     if (error) {
@@ -259,15 +275,24 @@ export async function completeOnboarding(restaurantId: string) {
     return { success: true }
 }
 
-// Check if slug is available
+// Check if slug is available (public slug for /lp/[slug])
 export async function checkSlugAvailability(slug: string) {
     const supabase = await createClient()
+    const normalized = slug.trim().toLowerCase()
+    if (!normalized) {
+        return { available: false as const }
+    }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from('restaurants')
         .select('id')
-        .eq('slug', slug)
-        .single()
+        .eq('slug', normalized)
+        .maybeSingle()
+
+    if (error) {
+        console.error('[checkSlugAvailability]', error)
+        return { available: false as const, error: error.message }
+    }
 
     return { available: !data }
 }

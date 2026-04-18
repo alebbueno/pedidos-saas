@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Product, Category } from '@/types'
+import { useState, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { Product, Category, type BusinessSegment } from '@/types'
+import { getSegmentRules } from '@/lib/segment-rules'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Edit, Trash, ChevronUp, ChevronDown } from 'lucide-react'
@@ -24,20 +27,32 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { ProductForm } from '@/components/admin/product-form'
-import { upsertCategory, deleteCategory, updateCategoryOrder } from '@/actions/admin'
+import { upsertCategory, deleteCategory, updateCategoryOrder, updateProductAvailability } from '@/actions/admin'
 import { cn } from '@/lib/utils'
 
 interface MenuManagerProps {
     restaurantId: string
+    restaurantSegment?: BusinessSegment | string | null
     initialProducts: (Product & { product_option_groups: any[] })[]
     initialCategories: Category[]
 }
 
-export function MenuManager({ restaurantId, initialProducts, initialCategories }: MenuManagerProps) {
+export function MenuManager({ restaurantId, restaurantSegment, initialProducts, initialCategories }: MenuManagerProps) {
+    const router = useRouter()
+    const segmentRules = useMemo(() => getSegmentRules(restaurantSegment), [restaurantSegment])
     const [selectedCategory, setSelectedCategory] = useState<string | 'all'>('all')
 
     // Maintain local state for reordering
     const [categories, setCategories] = useState(initialCategories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)))
+    const [products, setProducts] = useState(initialProducts)
+
+    useEffect(() => {
+        setProducts(initialProducts)
+    }, [initialProducts])
+
+    useEffect(() => {
+        setCategories(initialCategories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)))
+    }, [initialCategories])
 
     const [isSheetOpen, setIsSheetOpen] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState<(Product & { product_option_groups: any[] }) | undefined>(undefined)
@@ -60,11 +75,11 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
 
     const handleSuccessProduct = () => {
         setIsSheetOpen(false)
+        router.refresh()
     }
 
-    const filteredProducts = selectedCategory === 'all'
-        ? initialProducts
-        : initialProducts.filter(p => p.category_id === selectedCategory)
+    const filteredProducts =
+        selectedCategory === 'all' ? products : products.filter((p) => p.category_id === selectedCategory)
 
     const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
 
@@ -73,7 +88,12 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
 
         setIsSavingCategory(true)
         try {
-            const result = await upsertCategory(restaurantId, newCategoryName, editingCategory?.id, allowsHalfAndHalf)
+            const result = await upsertCategory(
+                restaurantId,
+                newCategoryName,
+                editingCategory?.id,
+                segmentRules.allowHalfAndHalf ? allowsHalfAndHalf : false
+            )
             if (result?.error) {
                 alert(result.error)
                 return
@@ -284,7 +304,7 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
                     <Card className="border-dashed bg-white">
                         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                             <p className="text-gray-500 mb-4">
-                                {initialProducts.length === 0
+                                {products.length === 0
                                     ? 'Nenhum produto cadastrado.'
                                     : 'Nenhum produto nesta categoria.'}
                             </p>
@@ -299,48 +319,92 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
                         {filteredProducts.map((product) => (
                             <Card
                                 key={product.id}
-                                className="group overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 bg-white"
-                                onClick={() => handleEditProduct(product)}
+                                className="group overflow-hidden hover:shadow-lg transition-all duration-200 bg-white border border-gray-100"
                             >
-                                <div className="relative aspect-video bg-gray-100 overflow-hidden">
-                                    {product.image_url ? (
-                                        <Image
-                                            src={product.image_url}
-                                            alt={product.name}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                                            Sem imagem
-                                        </div>
-                                    )}
-                                </div>
-                                <CardContent className="p-4">
-                                    <div className="flex items-start justify-between gap-2 mb-2">
-                                        <h3 className="font-semibold text-base leading-tight line-clamp-1">
-                                            {product.name}
-                                        </h3>
-                                        {product.is_active === false && (
-                                            <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full shrink-0">
-                                                Inativo
-                                            </span>
+                                <button
+                                    type="button"
+                                    className="w-full text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2"
+                                    onClick={() => handleEditProduct(product)}
+                                >
+                                    <div className="relative aspect-video bg-gray-100 overflow-hidden">
+                                        {product.image_url ? (
+                                            <Image
+                                                src={product.image_url}
+                                                alt={product.name}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                                                Sem imagem
+                                            </div>
                                         )}
-                                    </div>
-                                    <p className="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[40px]">
-                                        {product.description || 'Sem descrição'}
-                                    </p>
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-lg font-bold text-gray-900">
-                                            R$ {Number(product.base_price).toFixed(2).replace('.', ',')}
-                                        </div>
-                                        {product.product_option_groups && product.product_option_groups.length > 0 && (
-                                            <div className="text-xs text-gray-500">
-                                                {product.product_option_groups.length} variações
+                                        {product.is_active === false && (
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                <span className="text-xs font-bold text-white bg-red-600 px-3 py-1 rounded-full">
+                                                    Indisponível na vitrine
+                                                </span>
                                             </div>
                                         )}
                                     </div>
-                                </CardContent>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                            <h3 className="font-semibold text-base leading-tight line-clamp-1">
+                                                {product.name}
+                                            </h3>
+                                        </div>
+                                        {product.is_made_to_order &&
+                                            product.made_to_order_lead_days != null &&
+                                            product.made_to_order_lead_days > 0 && (
+                                                <p className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mb-2 w-fit">
+                                                    Encomenda · {product.made_to_order_lead_days}{' '}
+                                                    {product.made_to_order_lead_days === 1 ? 'dia' : 'dias'}
+                                                </p>
+                                            )}
+                                        <p className="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[40px]">
+                                            {product.description || 'Sem descrição'}
+                                        </p>
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-lg font-bold text-gray-900">
+                                                R$ {Number(product.base_price).toFixed(2).replace('.', ',')}
+                                            </div>
+                                            {product.product_option_groups && product.product_option_groups.length > 0 && (
+                                                <div className="text-xs text-gray-500">
+                                                    {product.product_option_groups.length} variações
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </button>
+                                <div
+                                    className="flex items-center justify-between gap-3 px-4 pb-4 pt-0 border-t border-gray-100"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-semibold text-gray-800">Disponível na vitrine</p>
+                                        <p className="text-[11px] text-gray-500">
+                                            {product.is_active !== false ? 'Cliente pode ver e comprar' : 'Oculto do catálogo público'}
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={product.is_active !== false}
+                                        onCheckedChange={async (checked) => {
+                                            const prev = products
+                                            setProducts((list) =>
+                                                list.map((p) => (p.id === product.id ? { ...p, is_active: checked } : p))
+                                            )
+                                            const result = await updateProductAvailability(product.id, checked)
+                                            if (!result.success) {
+                                                setProducts(prev)
+                                                toast.error(result.error || 'Não foi possível atualizar')
+                                                return
+                                            }
+                                            toast.success(checked ? 'Produto disponível' : 'Produto indisponível')
+                                            router.refresh()
+                                        }}
+                                        aria-label="Disponível na vitrine"
+                                    />
+                                </div>
                             </Card>
                         ))}
                     </div>
@@ -359,8 +423,9 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
                     <ProductForm
                         key={selectedProduct?.id || 'new'}
                         restaurantId={restaurantId}
+                        restaurantSegment={restaurantSegment ?? 'food'}
                         product={selectedProduct}
-                        categories={initialCategories}
+                        categories={categories}
                         onSuccess={handleSuccessProduct}
                         onOpenCategoryDialog={() => openCategoryDialog()}
                     />
@@ -373,7 +438,7 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
                     <DialogHeader>
                         <DialogTitle>{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
                         <DialogDescription>
-                            Organize seu cardápio com categorias.
+                            Organize seu catálogo em categorias.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -382,22 +447,24 @@ export function MenuManager({ restaurantId, initialProducts, initialCategories }
                             <Input
                                 value={newCategoryName}
                                 onChange={(e) => setNewCategoryName(e.target.value)}
-                                placeholder="Ex: Pizzas, Bebidas, Lanches"
+                                placeholder="Ex: Eletrônicos, Acessórios, Promoções"
                             />
                         </div>
-                        <div className="flex items-center justify-between space-x-2 border rounded-lg p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="half-and-half">Permite Meio a Meio</Label>
-                                <p className="text-sm text-gray-500">
-                                    Clientes podem combinar produtos diferentes desta categoria
-                                </p>
+                        {segmentRules.allowHalfAndHalf && (
+                            <div className="flex items-center justify-between space-x-2 border rounded-lg p-4">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="half-and-half">Permite Meio a Meio</Label>
+                                    <p className="text-sm text-gray-500">
+                                        Clientes podem combinar produtos diferentes desta categoria
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="half-and-half"
+                                    checked={allowsHalfAndHalf}
+                                    onCheckedChange={setAllowsHalfAndHalf}
+                                />
                             </div>
-                            <Switch
-                                id="half-and-half"
-                                checked={allowsHalfAndHalf}
-                                onCheckedChange={setAllowsHalfAndHalf}
-                            />
-                        </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>Cancelar</Button>

@@ -33,14 +33,14 @@ export default function OrderCard({ order }: { order: any }) {
                 </div>
                 {order.delivery_type === 'delivery' && (
                     <div className="col-span-2">
-                        <h4 className="font-semibold text-gray-900 mb-1">Endereço de Entrega</h4>
+                        <h4 className="font-semibold text-gray-900 mb-1">Endereço de envio</h4>
                         <p className="text-gray-600">{order.delivery_address}</p>
                     </div>
                 )}
             </div>
 
             <div className="border-t border-gray-100 pt-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Itens do Pedido</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">Itens do pedido</h4>
                 <div className="space-y-3">
                     {order.items?.map((item: any, i: number) => {
                         if (item.half_and_half) {
@@ -55,7 +55,7 @@ export default function OrderCard({ order }: { order: any }) {
                                 <div key={i} className="flex gap-3 bg-gray-50 p-2 rounded-lg">
                                     <div className="font-bold text-gray-900 min-w-[24px]">{item.quantity}x</div>
                                     <div className="flex-1">
-                                        <div className="font-medium text-gray-900">Pizza Meio a Meio</div>
+                                        <div className="font-medium text-gray-900">Produto exemplo</div>
                                         <div className="text-sm text-gray-600 mt-1">
                                             <div>½ {firstProduct}</div>
                                             <div>½ {secondProduct}</div>
@@ -88,7 +88,7 @@ export default function OrderCard({ order }: { order: any }) {
             </div>
 
             <div className="border-t border-gray-100 pt-4 flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                <span className="font-bold text-gray-900">Total do Pedido</span>
+                <span className="font-bold text-gray-900">Total</span>
                 <span className="font-bold text-xl text-green-600">R$ {order.total_amount.toFixed(2)}</span>
             </div>
         </div>
@@ -132,7 +132,7 @@ export default function OrderCard({ order }: { order: any }) {
                         <span className="uppercase">{order.payment_method}</span>
                         <span className="text-gray-300">•</span>
                         <span className={order.delivery_type === 'delivery' ? 'text-orange-600' : 'text-blue-600'}>
-                            {order.delivery_type === 'delivery' ? '🛵 Entrega' : '🥡 Retirada'}
+                            {order.delivery_type === 'delivery' ? '🛵 Envio' : '🥡 Retirada'}
                         </span>
                     </div>
 

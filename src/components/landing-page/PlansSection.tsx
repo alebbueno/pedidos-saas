@@ -7,11 +7,11 @@ export function PlansSection() {
         {
             name: "Start",
             price: "49,90",
-            description: "Ideal para quem está começando no delivery próprio",
+            description: "Ideal para quem está começando a vender online com a própria marca",
             features: [
-                "Cardápio digital",
+                "Catálogo digital",
                 "Pedido online",
-                "Página: seurestaurante.nossosite.com",
+                "Página: sualoja.nossosite.com",
                 "Cadastro de produtos e variações",
                 "Gestão de pedidos",
                 "Cadastro de clientes",
@@ -55,7 +55,7 @@ export function PlansSection() {
             <div className="container mx-auto px-4">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                        Escolha o plano ideal para o seu restaurante
+                        Escolha o plano ideal para o seu negócio
                     </h2>
                     <p className="text-lg text-slate-600">
                         Teste grátis por 7 dias. Cancele quando quiser.

@@ -40,7 +40,7 @@ export default function AgentConfigPage() {
             const restaurant = await getOwnerRestaurant()
 
             if (!restaurant) {
-                alert('Restaurante não encontrado. Faça login novamente.')
+                alert('Loja não encontrada. Faça login novamente.')
                 return
             }
 
@@ -152,7 +152,7 @@ export default function AgentConfigPage() {
                                     id="agent-name"
                                     value={config.agent_name}
                                     onChange={(e) => setConfig({ ...config, agent_name: e.target.value })}
-                                    placeholder="Ex: Atendente da Pizzaria Bella"
+                                    placeholder="Ex: Assistente da Loja Bella"
                                     className="mt-1"
                                 />
                                 <p className="text-xs text-muted-foreground mt-1">
@@ -167,7 +167,7 @@ export default function AgentConfigPage() {
                                     value={config.agent_function}
                                     onChange={(e) => setConfig({ ...config, agent_function: e.target.value })}
                                     rows={4}
-                                    placeholder="Descreva o que o agente deve fazer. Ex: Atender clientes, tirar dúvidas do cardápio, registrar pedidos e fornecer informações sobre horários e entregas."
+                                    placeholder="Descreva o que o agente deve fazer. Ex: Atender clientes, tirar dúvidas sobre produtos e políticas da loja, registrar pedidos e informar prazos de envio ou retirada."
                                     className="mt-1"
                                 />
                                 <p className="text-xs text-muted-foreground mt-1">
@@ -259,7 +259,7 @@ export default function AgentConfigPage() {
                                     value={config.additional_instructions || ''}
                                     onChange={(e) => setConfig({ ...config, additional_instructions: e.target.value })}
                                     rows={6}
-                                    placeholder={`Exemplos:\n- Não ofereça produtos fora do cardápio\n- Sempre confirme endereço antes de finalizar pedidos de entrega\n- Sugira bebida apenas se o cliente pedir lanche\n- Use o nome do cliente sempre que possível para personalizar o atendimento\n- Consulte o histórico de pedidos para fazer sugestões relevantes`}
+                                    placeholder={`Exemplos:\n- Não ofereça produtos fora do catálogo cadastrado\n- Sempre confirme endereço ou ponto de retirada antes de fechar pedidos com envio\n- Sugira itens complementares só quando fizer sentido para a compra\n- Use o nome do cliente sempre que possível para personalizar o atendimento\n- Consulte o histórico de pedidos para recomendações relevantes`}
                                     className="mt-1 font-mono text-sm"
                                 />
                                 <p className="text-xs text-muted-foreground mt-2">

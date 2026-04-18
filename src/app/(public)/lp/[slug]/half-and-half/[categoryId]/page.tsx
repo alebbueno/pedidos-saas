@@ -1,4 +1,5 @@
 import { getMenu, getRestaurantBySlug } from '@/actions/restaurant'
+import { getSegmentRules } from '@/lib/segment-rules'
 import { notFound } from 'next/navigation'
 import HalfAndHalfBuilder from '@/components/public/half-and-half-builder'
 
@@ -11,6 +12,10 @@ export default async function HalfAndHalfPage({ params }: PageProps) {
     const restaurant = await getRestaurantBySlug(slug)
 
     if (!restaurant) {
+        return notFound()
+    }
+
+    if (!getSegmentRules(restaurant.segment).allowHalfAndHalf) {
         return notFound()
     }
 

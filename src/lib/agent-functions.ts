@@ -7,13 +7,13 @@ export const agentFunctions = [
     {
         name: 'list_products',
         description:
-            'Lista produtos disponíveis no cardápio. Use para responder perguntas sobre o menu ou ajudar o cliente a escolher.',
+            'Lista produtos disponíveis no catálogo. Use para responder perguntas sobre itens à venda ou ajudar o cliente a escolher.',
         parameters: {
             type: 'object',
             properties: {
                 category: {
                     type: 'string',
-                    description: 'Filtrar por categoria (opcional). Ex: "Pizzas", "Bebidas"',
+                    description: 'Filtrar por categoria (opcional). Ex: "Destaques", "Promoções"',
                 },
                 search: {
                     type: 'string',
@@ -926,7 +926,8 @@ export async function executeAgentFunction(
                 const { success: createSuccess, customer: newCustomer } = await findOrCreateCustomer(
                     cleanPhone,
                     customerName,
-                    customerEmail
+                    customerEmail ?? undefined,
+                    restaurantId
                 )
                 
                 if (createSuccess && newCustomer) {

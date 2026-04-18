@@ -20,7 +20,8 @@ import {
 } from 'lucide-react'
 import { upsertProduct, deleteProduct } from '@/actions/admin'
 import { createClient } from '@/lib/supabase/client'
-import { Product } from '@/types'
+import { Product, type BusinessSegment, type ProductType } from '@/types'
+import { getSegmentRules } from '@/lib/segment-rules'
 import {
     Dialog,
     DialogContent,
@@ -33,13 +34,22 @@ import Image from 'next/image'
 
 interface ProductFormProps {
     restaurantId: string
+    restaurantSegment?: BusinessSegment | string | null
     product?: Product & { product_option_groups?: any[] }
     categories?: { id: string, name: string }[]
     onSuccess?: () => void
     onOpenCategoryDialog?: () => void
 }
 
-export function ProductForm({ restaurantId, product, categories, onSuccess, onOpenCategoryDialog }: ProductFormProps) {
+const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+    simple: 'Simples (preço fixo, sem grupos)',
+    customizable: 'Personalizável (grupos de opções)',
+    variant: 'Variações (tamanho, cor, etc.)',
+    composed: 'Composto (ex.: meio a meio)',
+}
+
+export function ProductForm({ restaurantId, restaurantSegment, product, categories, onSuccess, onOpenCategoryDialog }: ProductFormProps) {
+    const segmentRules = getSegmentRules(restaurantSegment ?? 'food')
     const [isLoading, setIsLoading] = useState(false)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [imageFile, setImageFile] = useState<File | null>(null)
@@ -54,6 +64,9 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
             image_url: product?.image_url || '',
             category_id: product?.category_id || '',
             is_active: product?.is_active ?? true,
+            is_made_to_order: product?.is_made_to_order ?? false,
+            made_to_order_lead_days: product?.made_to_order_lead_days ?? 7,
+            product_type: (product?.product_type ?? 'customizable') as ProductType,
             allows_half_and_half: product?.allows_half_and_half ?? false,
             option_groups: product?.product_option_groups?.map(g => ({
                 ...g,
@@ -90,6 +103,13 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
     }
 
     const onSubmit = async (data: any) => {
+        if (data.is_made_to_order) {
+            const d = Number(data.made_to_order_lead_days)
+            if (!Number.isFinite(d) || d < 1 || d > 366) {
+                alert('Para encomenda, informe um prazo entre 1 e 366 dias.')
+                return
+            }
+        }
         setIsLoading(true)
         try {
             let imageUrl = data.image_url
@@ -122,7 +142,12 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                 ...data,
                 restaurant_id: restaurantId,
                 base_price: Number(data.base_price),
-                image_url: imageUrl
+                image_url: imageUrl,
+                product_type: data.product_type as ProductType,
+                allows_half_and_half: segmentRules.allowHalfAndHalf ? !!data.allows_half_and_half : false,
+                is_active: !!data.is_active,
+                is_made_to_order: !!data.is_made_to_order,
+                made_to_order_lead_days: data.is_made_to_order ? Number(data.made_to_order_lead_days) : null,
             }
 
             const result = await upsertProduct(productData)
@@ -175,7 +200,7 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                             <Input
                                 id="name"
                                 {...form.register('name', { required: true })}
-                                placeholder="Ex: Pizza Grande Calabresa"
+                                placeholder="Ex: Camiseta básica G, Kit com 3 peças"
                                 className="mt-1.5"
                             />
                         </div>
@@ -185,7 +210,7 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                             <Textarea
                                 id="description"
                                 {...form.register('description')}
-                                placeholder="Descreva os ingredientes e detalhes..."
+                                placeholder="Descreva o produto: características, medidas, uso ou o que o cliente precisa saber..."
                                 className="mt-1.5 min-h-[80px]"
                             />
                         </div>
@@ -235,10 +260,29 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                             )}
                         </div>
 
+                        <div>
+                            <Label htmlFor="product_type">Tipo de produto</Label>
+                            <Select
+                                value={form.watch('product_type')}
+                                onValueChange={(value) => form.setValue('product_type', value as ProductType)}
+                            >
+                                <SelectTrigger className="mt-1.5" id="product_type">
+                                    <SelectValue placeholder="Tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {segmentRules.allowedProductTypes.map((t) => (
+                                        <SelectItem key={t} value={t}>
+                                            {PRODUCT_TYPE_LABELS[t]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
                         <div className="flex items-center justify-between">
                             <div>
-                                <Label htmlFor="is_active">Produto Ativo</Label>
-                                <p className="text-xs text-gray-500 mt-0.5">Visível no cardápio</p>
+                                <Label htmlFor="is_active">Produto ativo</Label>
+                                <p className="text-xs text-gray-500 mt-0.5">Visível na vitrine pública (catálogo)</p>
                             </div>
                             <Switch
                                 id="is_active"
@@ -247,17 +291,57 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                             />
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <Label htmlFor="allows_half_and_half">Permite Meio a Meio</Label>
-                                <p className="text-xs text-gray-500 mt-0.5">Cliente pode escolher duas metades diferentes</p>
+                        <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <Label htmlFor="is_made_to_order">Venda por encomenda</Label>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                        Informe um prazo estimado em dias; exibimos na vitrine para o cliente.
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="is_made_to_order"
+                                    checked={form.watch('is_made_to_order')}
+                                    onCheckedChange={(checked) => {
+                                        form.setValue('is_made_to_order', checked)
+                                        if (checked) {
+                                            const cur = Number(form.getValues('made_to_order_lead_days'))
+                                            if (!Number.isFinite(cur) || cur < 1) {
+                                                form.setValue('made_to_order_lead_days', 7)
+                                            }
+                                        }
+                                    }}
+                                />
                             </div>
-                            <Switch
-                                id="allows_half_and_half"
-                                checked={form.watch('allows_half_and_half')}
-                                onCheckedChange={(checked) => form.setValue('allows_half_and_half', checked)}
-                            />
+                            {form.watch('is_made_to_order') && (
+                                <div>
+                                    <Label htmlFor="made_to_order_lead_days">Prazo estimado (dias)</Label>
+                                    <Input
+                                        id="made_to_order_lead_days"
+                                        type="number"
+                                        min={1}
+                                        max={366}
+                                        className="mt-1.5 max-w-[140px]"
+                                        {...form.register('made_to_order_lead_days', { valueAsNumber: true })}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Dias corridos aproximados até o item ficar pronto.</p>
+                                </div>
+                            )}
                         </div>
+
+                        {segmentRules.allowHalfAndHalf && (
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label htmlFor="allows_half_and_half">Permite Meio a Meio</Label>
+                                    <p className="text-xs text-gray-500 mt-0.5">Cliente pode escolher duas metades diferentes</p>
+                                </div>
+                                <Switch
+                                    id="allows_half_and_half"
+                                    checked={form.watch('allows_half_and_half')}
+                                    onCheckedChange={(checked) => form.setValue('allows_half_and_half', checked)}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <Separator />
@@ -374,7 +458,7 @@ export function ProductForm({ restaurantId, product, categories, onSuccess, onOp
                     <DialogHeader>
                         <DialogTitle>Excluir Produto?</DialogTitle>
                         <DialogDescription>
-                            Esta ação não pode ser desfeita. O produto será removido permanentemente do cardápio.
+                            Esta ação não pode ser desfeita. O produto será removido permanentemente do catálogo.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

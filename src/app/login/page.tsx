@@ -56,15 +56,15 @@ export default function LoginPage() {
                         M
                     </div>
                     <h1 className="text-5xl font-extrabold mb-6 leading-tight">
-                        Gerencie seu delivery com inteligência.
+                        Gerencie suas vendas com inteligência.
                     </h1>
                     <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                        Junte-se a milhares de restaurantes que usam o MenuJá para vender mais e automatizar o atendimento no WhatsApp.
+                        Lojas e marcas de todos os segmentos usam o MenuJá para vender mais e automatizar o atendimento no WhatsApp.
                     </p>
                     <div className="flex gap-4">
                         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
                             <Check className="w-4 h-4 text-[#FF3B30]" />
-                            <span className="text-sm font-medium">Cardápio Digital</span>
+                            <span className="text-sm font-medium">Catálogo digital</span>
                         </div>
                         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
                             <Check className="w-4 h-4 text-[#FF3B30]" />
@@ -109,7 +109,7 @@ export default function LoginPage() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="exemplo@restaurante.com"
+                                placeholder="voce@suaempresa.com"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
                                 onKeyDown={handleKeyDown}

@@ -7,9 +7,13 @@ import { GlobalOrderNotifications } from '@/components/admin/global-order-notifi
 interface AdminShellProps {
     children: React.ReactNode
     restaurantId?: string
+    /** Nome da loja exibido no topo do sidebar */
+    restaurantName?: string
+    /** Pausa manual de vendas (`restaurants.is_open`), vindo do servidor */
+    initialStoreOpen?: boolean
 }
 
-export function AdminShell({ children, restaurantId }: AdminShellProps) {
+export function AdminShell({ children, restaurantId, restaurantName, initialStoreOpen = true }: AdminShellProps) {
     const [isCollapsed, setIsCollapsed] = useState(false)
 
     return (
@@ -21,6 +25,9 @@ export function AdminShell({ children, restaurantId }: AdminShellProps) {
             <Sidebar
                 isCollapsed={isCollapsed}
                 toggleSidebar={() => setIsCollapsed(!isCollapsed)}
+                restaurantName={restaurantName}
+                restaurantId={restaurantId}
+                initialStoreOpen={initialStoreOpen}
             />
 
             {/* Main Content */}

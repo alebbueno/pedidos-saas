@@ -107,7 +107,7 @@ export default function SignupPage() {
                             </div>
                             <div>
                                 <h3 className="font-bold text-lg">Setup Instantâneo</h3>
-                                <p className="text-white/80">Crie seu cardápio em minutos.</p>
+                                <p className="text-white/80">Monte seu catálogo e comece a vender em minutos.</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">

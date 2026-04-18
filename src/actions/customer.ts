@@ -1,12 +1,14 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { buildPhoneSearchVariations } from '@/lib/phone-variations'
 
 export interface Customer {
     id: string
     phone: string
     name: string
     email?: string
+    restaurant_id?: string | null
     created_at: string
     updated_at: string
 }
@@ -26,57 +28,61 @@ export interface CustomerAddress {
 }
 
 /**
- * Find existing customer by phone or create a new one
+ * Busca cliente existente nesta loja ou cria um novo (telefone é único por restaurante).
  */
-export async function findOrCreateCustomer(phone: string, name: string, email?: string, restaurantId?: string) {
+export async function findOrCreateCustomer(
+    phone: string,
+    name: string,
+    email: string | undefined,
+    restaurantId: string
+) {
     const supabase = await createClient()
 
-    console.log('[findOrCreateCustomer] Starting with phone:', phone, 'restaurantId:', restaurantId)
+    if (!restaurantId) {
+        return { success: false as const, error: 'restaurantId é obrigatório' }
+    }
 
     try {
-        // First, try to find existing customer using maybeSingle (doesn't throw error if not found)
-        console.log('[findOrCreateCustomer] Searching for existing customer...')
-        const { data: existing } = await supabase
-            .from('customers')
-            .select('*')
-            .eq('phone', phone)
-            .maybeSingle()
+        const variations = buildPhoneSearchVariations(phone)
 
-        console.log('[findOrCreateCustomer] Search result:', { existing: !!existing })
-
-        if (existing) {
-            console.log('[findOrCreateCustomer] Customer exists, updating...', existing.id)
-            // Customer exists, update their info and link to this restaurant
-            const updates: any = {
-                name,
-                email: email || existing.email,
-                updated_at: new Date().toISOString()
-            }
-
-            if (restaurantId) {
-                updates.restaurant_id = restaurantId
-            }
-
-            const { data: updated, error: updateError } = await supabase
+        for (const phoneVar of variations) {
+            const { data: existing } = await supabase
                 .from('customers')
-                .update(updates)
-                .eq('id', existing.id)
-                .select()
-                .single()
+                .select('*')
+                .eq('restaurant_id', restaurantId)
+                .eq('phone', phoneVar)
+                .maybeSingle()
 
-            if (updateError) {
-                console.error('Error updating customer:', updateError)
-                return { success: false, error: updateError.message }
+            if (existing) {
+                const updates: Record<string, unknown> = {
+                    name,
+                    email: email || existing.email,
+                    updated_at: new Date().toISOString(),
+                }
+
+                const { data: updated, error: updateError } = await supabase
+                    .from('customers')
+                    .update(updates)
+                    .eq('id', existing.id)
+                    .select()
+                    .single()
+
+                if (updateError) {
+                    console.error('Error updating customer:', updateError)
+                    return { success: false as const, error: updateError.message }
+                }
+
+                return { success: true as const, customer: updated as Customer }
             }
-
-            console.log('[findOrCreateCustomer] Customer updated successfully')
-            return { success: true, customer: updated as Customer }
         }
 
-        // Customer doesn't exist, create new one
-        console.log('[findOrCreateCustomer] Customer not found, creating new...')
-        const newCustomerData: any = { phone, name, email }
-        if (restaurantId) newCustomerData.restaurant_id = restaurantId
+        const canonicalPhone = phone.replace(/\D/g, '')
+        const newCustomerData = {
+            phone: canonicalPhone || phone,
+            name,
+            email: email || null,
+            restaurant_id: restaurantId,
+        }
 
         const { data: newCustomer, error: createError } = await supabase
             .from('customers')
@@ -86,59 +92,49 @@ export async function findOrCreateCustomer(phone: string, name: string, email?: 
 
         if (createError) {
             console.error('[findOrCreateCustomer] Error creating customer:', createError)
-            // If we get a duplicate key error, fetch the existing customer
             if (createError.code === '23505') {
-                console.log('[findOrCreateCustomer] Duplicate key error, fetching existing customer...')
-                const { data: existingCustomer } = await supabase
-                    .from('customers')
-                    .select('*')
-                    .eq('phone', phone)
-                    .single()
-
-                console.log('[findOrCreateCustomer] Fetch result:', { found: !!existingCustomer })
-                if (existingCustomer) {
-                    console.log('[findOrCreateCustomer] Returning existing customer')
-                    return { success: true, customer: existingCustomer as Customer }
+                for (const phoneVar of buildPhoneSearchVariations(phone)) {
+                    const { data: existingCustomer } = await supabase
+                        .from('customers')
+                        .select('*')
+                        .eq('restaurant_id', restaurantId)
+                        .eq('phone', phoneVar)
+                        .maybeSingle()
+                    if (existingCustomer) {
+                        return { success: true as const, customer: existingCustomer as Customer }
+                    }
                 }
             }
 
-            return { success: false, error: createError.message }
+            return { success: false as const, error: createError.message }
         }
 
-        console.log('[findOrCreateCustomer] Customer created successfully')
-        return { success: true, customer: newCustomer as Customer }
-    } catch (error: any) {
+        return { success: true as const, customer: newCustomer as Customer }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error)
         console.error('Error in findOrCreateCustomer:', error)
-        return { success: false, error: error.message }
+        return { success: false as const, error: message }
     }
 }
 
 /**
- * Get customer by phone
+ * Busca cliente pelo telefone apenas na loja informada.
  */
-export async function getCustomerByPhone(phone: string) {
+export async function getCustomerByPhone(phone: string, restaurantId: string) {
     const supabase = await createClient()
 
+    if (!restaurantId) {
+        return { success: false as const, error: 'restaurantId é obrigatório', customer: null }
+    }
+
     try {
-        // Normalize phone number: remove all non-digit characters
-        const normalizedPhone = phone.replace(/\D/g, '')
-        console.log(`[getCustomerByPhone] Searching for phone: ${phone} (normalized: ${normalizedPhone})`)
+        const phoneVariations = buildPhoneSearchVariations(phone)
 
-        // Try multiple phone formats
-        const phoneVariations = [
-            normalizedPhone, // Original normalized
-            phone, // Original as received
-            normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`, // With country code
-            normalizedPhone.startsWith('55') ? normalizedPhone.slice(2) : normalizedPhone, // Without country code
-        ].filter((v, i, arr) => arr.indexOf(v) === i) // Remove duplicates
-
-        console.log(`[getCustomerByPhone] Trying phone variations:`, phoneVariations)
-
-        // Try each variation
         for (const phoneVar of phoneVariations) {
             const { data, error } = await supabase
                 .from('customers')
                 .select('*')
+                .eq('restaurant_id', restaurantId)
                 .eq('phone', phoneVar)
                 .maybeSingle()
 
@@ -148,17 +144,15 @@ export async function getCustomerByPhone(phone: string) {
             }
 
             if (data) {
-                console.log(`[getCustomerByPhone] Found customer with phone variation ${phoneVar}:`, data.id)
-                return { success: true, customer: data as Customer }
+                return { success: true as const, customer: data as Customer }
             }
         }
 
-        // If no customer found with any variation
-        console.log(`[getCustomerByPhone] No customer found for phone: ${phone} (tried: ${phoneVariations.join(', ')})`)
-        return { success: true, customer: null }
-    } catch (error: any) {
+        return { success: true as const, customer: null }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error)
         console.error('[getCustomerByPhone] Exception:', error)
-        return { success: false, error: error.message }
+        return { success: false as const, error: message, customer: null }
     }
 }
 

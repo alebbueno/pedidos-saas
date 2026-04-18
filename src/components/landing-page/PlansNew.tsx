@@ -9,13 +9,13 @@ export function PlansNew() {
             name: "Para quem quer começar",
             role: "Start",
             price: "49,90",
-            description: "Ideal para quem está começando no delivery próprio. Tenha seu cardápio online hoje mesmo.",
+            description: "Ideal para quem está começando a vender online com a própria marca. Tenha seu catálogo no ar hoje mesmo.",
             features: [
-                "Cardápio digital completo",
+                "Catálogo digital completo",
                 "Receba pedidos no WhatsApp",
                 "Gestão de pedidos básica",
                 "Cadastro de produtos",
-                "QR Code para mesas"
+                "Link e QR Code para divulgar"
             ],
             icon: <ShoppingBag className="w-6 h-6 text-[#FF3B30]" />,
             cta: "Começar grátis",
@@ -65,7 +65,7 @@ export function PlansNew() {
                         </span>
                         <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
                             Quem usa, ama. Quem vende, cresce.<br />
-                            Quem entrega, fatura.
+                            Quem organiza, escala.
                         </h2>
                     </div>
                 </ScrollReveal>

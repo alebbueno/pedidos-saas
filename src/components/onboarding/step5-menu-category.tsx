@@ -15,12 +15,12 @@ interface Step5Props {
 
 export function Step5MenuCategory({ data, onChange }: Step5Props) {
     const exampleCategories = [
-        { name: 'Pizzas', icon: '🍕', description: 'Pizzas artesanais com massa fina e crocante' },
-        { name: 'Bebidas', icon: '🥤', description: 'Refrigerantes, sucos e bebidas geladas' },
-        { name: 'Sobremesas', icon: '🍰', description: 'Doces e sobremesas deliciosas' },
-        { name: 'Lanches', icon: '🍔', description: 'Hambúrgueres e sanduíches' },
-        { name: 'Pratos Executivos', icon: '🍽️', description: 'Refeições completas' },
-        { name: 'Porções', icon: '🍟', description: 'Porções para compartilhar' },
+        { name: 'Destaques', icon: '✨', description: 'O que você mais quer vender primeiro' },
+        { name: 'Novidades', icon: '🆕', description: 'Lançamentos e coleções atuais' },
+        { name: 'Vestuário', icon: '👕', description: 'Peças, tamanhos e cores' },
+        { name: 'Acessórios', icon: '👜', description: 'Complementos e kits' },
+        { name: 'Para casa', icon: '🏠', description: 'Itens de decoração e uso diário' },
+        { name: 'Promoções', icon: '🏷️', description: 'Ofertas por tempo limitado' },
     ]
 
     return (
@@ -30,7 +30,7 @@ export function Step5MenuCategory({ data, onChange }: Step5Props) {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
                     <FolderOpen className="w-8 h-8 text-yellow-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900">Primeira Categoria do Cardápio</h2>
+                <h2 className="text-3xl font-bold text-slate-900">Primeira categoria do catálogo</h2>
                 <p className="text-slate-600 text-lg">Organize seus produtos em categorias para facilitar a navegação</p>
             </div>
 
@@ -52,7 +52,7 @@ export function Step5MenuCategory({ data, onChange }: Step5Props) {
                     </Label>
                     <Input
                         id="category-name"
-                        placeholder="Ex: Pizzas"
+                        placeholder="Ex: Novidades, Best-sellers, Verão 2026"
                         value={data.name}
                         onChange={(e) => onChange({ ...data, name: e.target.value })}
                         className="h-12 rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500"
@@ -66,7 +66,7 @@ export function Step5MenuCategory({ data, onChange }: Step5Props) {
                     </Label>
                     <Textarea
                         id="category-description"
-                        placeholder="Ex: Pizzas artesanais com massa fina e crocante, feitas no forno a lenha"
+                        placeholder="Ex: Peças da coleção atual com envio em até 3 dias úteis"
                         value={data.description}
                         onChange={(e) => onChange({ ...data, description: e.target.value })}
                         className="rounded-xl border-slate-300 focus:border-orange-500 focus:ring-orange-500 min-h-[80px]"
@@ -101,12 +101,11 @@ export function Step5MenuCategory({ data, onChange }: Step5Props) {
                 <h3 className="font-semibold text-slate-900 mb-3">📋 Exemplo de categoria:</h3>
                 <div className="bg-white rounded-xl p-4 border border-yellow-200">
                     <div className="flex items-start gap-3">
-                        <span className="text-3xl">🍕</span>
+                        <span className="text-3xl">✨</span>
                         <div className="flex-1">
-                            <h4 className="font-bold text-slate-900 mb-1">Pizzas</h4>
+                            <h4 className="font-bold text-slate-900 mb-1">Destaques</h4>
                             <p className="text-sm text-slate-600">
-                                Pizzas artesanais com massa fina e crocante, feitas no forno a lenha com ingredientes
-                                frescos e selecionados.
+                                Curadoria do que está em alta: pronta entrega, edição limitada ou frete promocional — você escolhe o foco.
                             </p>
                         </div>
                     </div>
@@ -114,7 +113,7 @@ export function Step5MenuCategory({ data, onChange }: Step5Props) {
                 <div className="mt-4 p-3 bg-white rounded-xl border border-yellow-200">
                     <p className="text-xs text-slate-600">
                         💡 <strong>Dica profissional:</strong> Organize as categorias por ordem de popularidade.
-                        As categorias mais vendidas devem aparecer primeiro no cardápio!
+                        O que vende mais pode aparecer primeiro no catálogo!
                     </p>
                 </div>
             </div>

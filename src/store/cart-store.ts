@@ -95,7 +95,7 @@ export const useCartStore = create<CartState>()(
                 const currentRestId = get().restaurantId
                 // If adding item from different restaurant, clear cart
                 if (currentRestId && currentRestId !== restaurantId) {
-                    if (!confirm('Você está mudando de restaurante. O carrinho será limpo. Deseja continuar?')) {
+                    if (!confirm('Você está mudando de loja. O carrinho será limpo. Deseja continuar?')) {
                         return
                     }
                     set({ items: [], restaurantId })

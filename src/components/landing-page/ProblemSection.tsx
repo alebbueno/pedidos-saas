@@ -16,7 +16,7 @@ export function ProblemSection() {
                     <div className="grid md:grid-cols-3 gap-6 mt-12">
                         {[
                             { title: "Taxas Abusivas", desc: "Pare de perder uma fatia grande do seu lucro em cada venda." },
-                            { title: "Concorrência Desleal", desc: "Seu cliente vê seu prato ao lado de dezenas de outros." },
+                            { title: "Concorrência Desleal", desc: "Seu cliente vê seu produto ao lado de dezenas de outros." },
                             { title: "Dados Ocultos", desc: "Você não tem acesso fácil aos dados do seu próprio cliente." }
                         ].map((item, i) => (
                             <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">

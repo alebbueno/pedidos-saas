@@ -1,5 +1,6 @@
 import { getRestaurantBySlug } from '@/actions/restaurant'
 import CheckoutForm from '@/components/public/checkout-form'
+import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
 import CustomerNavbar from '@/components/public/customer-navbar'
 import { notFound } from 'next/navigation'
 
@@ -19,7 +20,8 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 max-w-4xl">
+            <div className="container mx-auto px-4 max-w-4xl space-y-4">
+                <ClosedStoreBanner restaurant={restaurant} />
                 <CheckoutForm restaurant={restaurant} />
             </div>
         </div>

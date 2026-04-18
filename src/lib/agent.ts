@@ -28,23 +28,29 @@ export async function processAgentMessage(restaurantId: string, customerPhone: s
     const previousMessages = (history || []).reverse().map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
 
     // 3. Construct System Prompt
-    const menuContext = products.map(p =>
-        `- ${p.name} (R$ ${p.base_price.toFixed(2)}): ${p.description || ''} ${p.product_option_groups.length > 0 ? '[Tem variações]' : ''}`
-    ).join('\n')
+    const menuContext = products
+        .map((p) => {
+            const lead =
+                p.is_made_to_order && p.made_to_order_lead_days != null && p.made_to_order_lead_days > 0
+                    ? ` [Encomenda ~${p.made_to_order_lead_days}d]`
+                    : ''
+            return `- ${p.name} (R$ ${p.base_price.toFixed(2)}): ${p.description || ''}${lead} ${p.product_option_groups?.length > 0 ? '[Tem variações]' : ''}`
+        })
+        .join('\n')
 
     const systemPrompt = `
-      Você é um atendente virtual do restaurante ${restaurant.name}.
+      Você é um atendente virtual da loja ${restaurant.name}.
       Seu objetivo é ajudar o cliente a fazer um pedido.
       Seja simpático, breve e use emojis.
       
-      Cardápio:
+      Catálogo de produtos:
       ${menuContext}
 
       Regras:
-      1. Se o cliente pedir algo, verifique as variações (tamanho, borda) perguntando uma por vez.
-      2. Se o pedido estiver completo, peça confirmação e endereço.
+      1. Se o cliente pedir algo, verifique variações e opcionais cadastrados, perguntando de forma organizada.
+      2. Se o pedido estiver completo, peça confirmação e endereço (quando for entrega).
       3. IMPORTANTE: Se o cliente confirmar o pedido, você DEVE responder com um resumo e instruir o cliente a enviar 'CONFIRMO O PEDIDO' para oficializar (ou você pode gerar um link se tivéssemos essa feature).
-      4. NÃO invente produtos que não estão no cardápio.
+      4. NÃO invente produtos que não estão no catálogo.
     `
 
     // 4. Save User Message
