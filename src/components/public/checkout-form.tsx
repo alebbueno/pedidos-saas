@@ -18,6 +18,7 @@ import StepIndicator from './step-indicator'
 import { cn } from '@/lib/utils'
 import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
 import { getPaymentMethodLabel } from '@/lib/payment-method-label'
+import { normalizePhoneForWhatsAppLink } from '@/lib/whatsapp-phone'
 
 const STEPS = [
     { number: 1, title: 'Seus dados', description: 'Contato' },
@@ -234,13 +235,13 @@ export default function CheckoutForm({ restaurant }: { restaurant: Restaurant })
                         const firstOpts = item.half_and_half.first_half.options.map(o => o.option_name).join(', ')
                         const secondOpts = item.half_and_half.second_half.options.map(o => o.option_name).join(', ')
 
-                        return `${item.quantity}x Meio a Meio 🍕\\n   1ª metade: ${firstProduct}${firstOpts ? ` (${firstOpts})` : ''}\\n   2ª metade: ${secondProduct}${secondOpts ? ` (${secondOpts})` : ''} - R$ ${item.totalPrice.toFixed(2)}`
+                        return `${item.quantity}x Meio a Meio 🍕\n   1ª metade: ${firstProduct}${firstOpts ? ` (${firstOpts})` : ''}\n   2ª metade: ${secondProduct}${secondOpts ? ` (${secondOpts})` : ''} - R$ ${item.totalPrice.toFixed(2)}`
                     } else {
                         // Normal item
                         const opts = item.selectedOptions?.map(o => `${o.group_name}: ${o.option_name}`).join(', ') || ''
-                        return `${item.quantity}x ${item.product.name}${opts ? `\\n   ${opts}` : ''} - R$ ${item.totalPrice.toFixed(2)}`
+                        return `${item.quantity}x ${item.product.name}${opts ? `\n   ${opts}` : ''} - R$ ${item.totalPrice.toFixed(2)}`
                     }
-                }).join('\\n')
+                }).join('\n')
 
                 const paymentText =
                     paymentMethod === 'money' && changeFor
@@ -265,12 +266,19 @@ ${deliveryType === 'delivery' ? `*Endereço:* ${finalAddress}` : ''}
 *Pagamento:* ${paymentText}`
 
                 const encodedMessage = encodeURIComponent(message)
-                const waUrl = `https://wa.me/${restaurant.whatsapp_number}?text=${encodedMessage}`
+                const storeWaDigits = normalizePhoneForWhatsAppLink(restaurant.whatsapp_number)
 
                 clearCart()
-                // Open separate tab for WhatsApp
-                window.open(waUrl, '_blank')
-                // Redirect internal navigation to orders page
+
+                if (storeWaDigits) {
+                    const waUrl = `https://wa.me/${storeWaDigits}?text=${encodedMessage}`
+                    window.open(waUrl, '_blank', 'noopener,noreferrer')
+                } else {
+                    alert(
+                        'Pedido criado com sucesso. Esta loja ainda não configurou o WhatsApp para envio automático da mensagem; entre em contato com o estabelecimento pelos canais informados na página da loja.'
+                    )
+                }
+
                 router.push(`/lp/${restaurant.slug}/my-orders`)
             } else {
                 alert('Erro ao criar pedido. Tente novamente.')

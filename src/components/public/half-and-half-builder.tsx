@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
 import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
+import { formatProductPriceDisplay, getProductPriceRange, priceRangeHasSpread } from '@/lib/product-price-range'
 
 interface HalfAndHalfBuilderProps {
     category: Category
@@ -198,12 +199,32 @@ export default function HalfAndHalfBuilder({
         router.push(`/lp/${restaurant.slug}`)
     }
 
+    const renderHalfProductPrice = (p: (typeof products)[number]) => {
+        const r = getProductPriceRange(p)
+        if (priceRangeHasSpread(r)) {
+            return (
+                <div
+                    className="flex shrink-0 flex-col items-end leading-tight tabular-nums"
+                    style={{ color: primaryColor }}
+                >
+                    <span className="text-sm font-bold sm:text-base">R$ {r.min.toFixed(2)}</span>
+                    <span className="text-xs font-bold opacity-90">a R$ {r.max.toFixed(2)}</span>
+                </div>
+            )
+        }
+        return (
+            <span className="shrink-0 text-right text-sm font-bold leading-tight sm:text-base" style={{ color: primaryColor }}>
+                {formatProductPriceDisplay(r)}
+            </span>
+        )
+    }
+
     const renderOptionGroups = () => {
         return mergedOptionGroups.sort((a, b) => (a.min_selection > 0 ? -1 : 1)).map(group => (
             <div key={group.id} className="space-y-3">
-                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                    <Label className="font-bold text-base">{group.name}</Label>
-                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 rounded-xl">
+                    <Label className="font-bold text-base shrink-0">{group.name}</Label>
+                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full self-start sm:self-auto max-w-full text-pretty">
                         {group.min_selection > 0 ? 'Obrigatório' : 'Opcional'}
                         {group.max_selection > 1 && ` (Máx: ${group.max_selection})`}
                     </span>
@@ -215,20 +236,20 @@ export default function HalfAndHalfBuilder({
                         return (
                             <div
                                 key={option.id}
-                                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 cursor-pointer transition-all"
+                                className="flex flex-col gap-2 p-3 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 cursor-pointer transition-all sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                                 onClick={() => handleSelection(group.id, option.id, group.type, group.max_selection, group.min_selection)}
                             >
-                                <div className="flex items-center space-x-3">
+                                <div className="flex min-w-0 flex-1 items-start gap-3">
                                     {group.type === 'single' ? (
-                                        <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all", isSelected ? "border-primary bg-primary" : "border-gray-300")}>
+                                        <div className={cn("mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-all", isSelected ? "border-primary bg-primary" : "border-gray-300")}>
                                             {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
                                         </div>
                                     ) : (
-                                        <Checkbox checked={isSelected} />
+                                        <Checkbox checked={isSelected} className="mt-0.5 shrink-0" />
                                     )}
-                                    <span className="text-sm font-medium">{option.name}</span>
+                                    <span className="min-w-0 flex-1 break-words text-sm font-medium leading-snug">{option.name}</span>
                                 </div>
-                                <span className="text-sm font-semibold text-gray-600">
+                                <span className="shrink-0 self-end text-sm font-semibold tabular-nums text-gray-600 sm:self-auto">
                                     {Number(option.price_modifier) > 0 && `+ R$ ${Number(option.price_modifier).toFixed(2)}`}
                                 </span>
                             </div>
@@ -276,14 +297,12 @@ export default function HalfAndHalfBuilder({
                                         : "border-gray-200 hover:border-gray-300"
                                 )}
                             >
-                                <div className="flex justify-between items-center">
-                                    <div>
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                                    <div className="min-w-0 flex-1">
                                         <h4 className="font-bold">{product.name}</h4>
                                         {product.description && <p className="text-sm text-gray-600 mt-1">{product.description}</p>}
                                     </div>
-                                    <span className="font-bold" style={{ color: primaryColor }}>
-                                        R$ {Number(product.base_price).toFixed(2)}
-                                    </span>
+                                    {renderHalfProductPrice(product)}
                                 </div>
                             </div>
                         ))}
@@ -307,14 +326,12 @@ export default function HalfAndHalfBuilder({
                                         : "border-gray-200 hover:border-gray-300"
                                 )}
                             >
-                                <div className="flex justify-between items-center">
-                                    <div>
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                                    <div className="min-w-0 flex-1">
                                         <h4 className="font-bold">{product.name}</h4>
                                         {product.description && <p className="text-sm text-gray-600 mt-1">{product.description}</p>}
                                     </div>
-                                    <span className="font-bold" style={{ color: primaryColor }}>
-                                        R$ {Number(product.base_price).toFixed(2)}
-                                    </span>
+                                    {renderHalfProductPrice(product)}
                                 </div>
                             </div>
                         ))}
@@ -392,19 +409,19 @@ export default function HalfAndHalfBuilder({
             {/* Fixed Bottom Bar */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
                 <div className="container mx-auto max-w-2xl">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
                         {step !== 'select_first' && (
                             <Button
                                 variant="outline"
                                 onClick={handleBack}
-                                className="h-12"
+                                className="h-12 w-full shrink-0 sm:w-auto"
                             >
                                 Voltar
                             </Button>
                         )}
 
                         {step === 'review' && (
-                            <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden h-12 bg-gray-50 shrink-0">
+                            <div className="flex items-center justify-center border border-gray-300 rounded-xl overflow-hidden h-12 bg-gray-50 shrink-0 sm:justify-start">
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -427,32 +444,32 @@ export default function HalfAndHalfBuilder({
 
                         {step !== 'review' ? (
                             <Button
-                                className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all text-white"
+                                className="h-12 w-full flex-1 rounded-xl text-base font-bold shadow-md transition-all hover:shadow-lg sm:min-w-[10rem] text-white"
                                 onClick={handleNext}
                                 disabled={!canProceed || !ordering.acceptingOrders}
                                 style={{
                                     backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
                                 }}
                             >
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center justify-center gap-2">
                                     Continuar
                                     <ChevronRight className="w-5 h-5" />
                                 </span>
                             </Button>
                         ) : (
                             <Button
-                                className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all flex justify-between px-6 text-white"
+                                className="flex h-auto min-h-12 w-full flex-1 flex-col gap-1 rounded-xl px-4 py-2.5 text-base font-bold shadow-md transition-all hover:shadow-lg sm:h-12 sm:flex-row sm:justify-between sm:gap-0 sm:px-6 text-white"
                                 onClick={handleAddToCart}
                                 disabled={!ordering.acceptingOrders}
                                 style={{
                                     backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
                                 }}
                             >
-                                <span className="flex items-center gap-2">
-                                    <ShoppingBag className="w-5 h-5" />
+                                <span className="flex items-center justify-center gap-2 sm:justify-start">
+                                    <ShoppingBag className="h-5 w-5 shrink-0" />
                                     Adicionar
                                 </span>
-                                <span>R$ {totalPrice.toFixed(2)}</span>
+                                <span className="tabular-nums sm:text-right">R$ {totalPrice.toFixed(2)}</span>
                             </Button>
                         )}
                     </div>

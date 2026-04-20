@@ -2,11 +2,16 @@ import { Restaurant } from '@/types'
 import Image from 'next/image'
 import { MapPin, Phone } from 'lucide-react'
 import { RestaurantOpenStatusPill } from '@/components/public/restaurant-open-status-pill'
+import { formatRestaurantPhoneDisplay, normalizePhoneForWhatsAppLink } from '@/lib/whatsapp-phone'
 
 export default function RestaurantHeader({ restaurant }: { restaurant: Restaurant }) {
     const primaryColor = restaurant.primary_color || '#F97316'
     const backgroundColor = restaurant.background_color || '#FFFFFF'
     const textColor = restaurant.text_color || '#000000'
+
+    const storePhoneRaw = restaurant.whatsapp_number
+    const storePhoneDigits = normalizePhoneForWhatsAppLink(storePhoneRaw)
+    const storePhoneLabel = storePhoneRaw ? formatRestaurantPhoneDisplay(storePhoneRaw) : ''
 
     return (
         <section className="relative z-20 mb-6 overflow-x-clip sm:mb-10">
@@ -82,13 +87,13 @@ export default function RestaurantHeader({ restaurant }: { restaurant: Restauran
                         <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:mt-6 sm:gap-3">
                             <RestaurantOpenStatusPill restaurant={restaurant} />
 
-                            {restaurant.phone && (
+                            {storePhoneDigits && (
                                 <a
-                                    href={`tel:${restaurant.phone}`}
+                                    href={`tel:+${storePhoneDigits}`}
                                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-stone-100 px-4 text-stone-800 transition-colors hover:bg-stone-200 active:bg-stone-300 touch-manipulation"
                                 >
                                     <Phone className="h-4 w-4 shrink-0 text-stone-600" aria-hidden />
-                                    <span className="tabular-nums">{restaurant.phone}</span>
+                                    <span className="tabular-nums">{storePhoneLabel || storePhoneDigits}</span>
                                 </a>
                             )}
                         </div>

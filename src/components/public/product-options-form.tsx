@@ -241,9 +241,9 @@ export default function ProductOptionsForm({
     const renderOptionGroups = (sels: Record<string, string[]>, half?: 'first' | 'second') => {
         return product.product_option_groups.sort((a, b) => (a.min_selection > 0 ? -1 : 1)).map(group => (
             <div key={group.id} className="space-y-3 animate-in slide-in-from-bottom-4 duration-300">
-                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                    <Label className="font-bold text-base">{group.name}</Label>
-                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-3 rounded-xl">
+                    <Label className="font-bold text-base shrink-0">{group.name}</Label>
+                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full self-start sm:self-auto max-w-full text-pretty">
                         {group.min_selection > 0 ? 'Obrigatório' : 'Opcional'}
                         {group.max_selection > 1 && ` (Máx: ${group.max_selection})`}
                     </span>
@@ -255,7 +255,7 @@ export default function ProductOptionsForm({
                         return (
                             <div
                                 key={option.id}
-                                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 cursor-pointer transition-all"
+                                className="flex flex-col gap-2 p-3 hover:bg-gray-50 rounded-xl border border-transparent hover:border-gray-200 cursor-pointer transition-all sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                                 onClick={() => {
                                     const isSelected = (sels[group.id] || []).includes(option.id)
                                     const selectedCount = (sels[group.id] || []).length
@@ -266,17 +266,17 @@ export default function ProductOptionsForm({
                                     }
                                 }}
                             >
-                                <div className="flex items-center space-x-3">
+                                <div className="flex min-w-0 flex-1 items-start gap-3">
                                     {group.type === 'single' ? (
-                                        <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all", isSelected ? "border-primary bg-primary" : "border-gray-300")}>
+                                        <div className={cn("mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-all", isSelected ? "border-primary bg-primary" : "border-gray-300")}>
                                             {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
                                         </div>
                                     ) : (
-                                        <Checkbox checked={isSelected} />
+                                        <Checkbox checked={isSelected} className="mt-0.5 shrink-0" />
                                     )}
-                                    <span className="text-sm font-medium">{option.name}</span>
+                                    <span className="min-w-0 flex-1 break-words text-sm font-medium leading-snug">{option.name}</span>
                                 </div>
-                                <span className="text-sm font-semibold text-gray-600">
+                                <span className="shrink-0 self-end text-sm font-semibold tabular-nums text-gray-600 sm:self-auto">
                                     {Number(option.price_modifier) > 0 && `+ R$ ${Number(option.price_modifier).toFixed(2)}`}
                                 </span>
                             </div>
@@ -298,8 +298,8 @@ export default function ProductOptionsForm({
                 product.product_type
             ) && (
                 <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 animate-in slide-in-from-bottom-4 duration-300">
-                    <div className="flex items-center justify-between">
-                        <div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
                             <Label className="font-bold text-base">🍕 Meio a Meio</Label>
                             <p className="text-xs text-gray-600 mt-1">Escolha duas metades diferentes</p>
                         </div>
@@ -307,7 +307,7 @@ export default function ProductOptionsForm({
                             variant={isHalfAndHalf ? "default" : "outline"}
                             onClick={() => setIsHalfAndHalf(!isHalfAndHalf)}
                             style={isHalfAndHalf ? { backgroundColor: primaryColor } : {}}
-                            className={isHalfAndHalf ? "text-white" : ""}
+                            className={`w-full shrink-0 sm:w-auto ${isHalfAndHalf ? 'text-white' : ''}`}
                         >
                             {isHalfAndHalf ? 'Meio a Meio Ativo' : 'Ativar Meio a Meio'}
                         </Button>
@@ -354,9 +354,9 @@ export default function ProductOptionsForm({
             {/* Fixed Bottom Bar */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50">
                 <div className="container mx-auto max-w-2xl">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                         {/* Quantity Selector */}
-                        <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden h-12 bg-gray-50 shrink-0">
+                        <div className="flex items-center justify-center border border-gray-300 rounded-xl overflow-hidden h-12 bg-gray-50 shrink-0 sm:justify-start">
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -378,18 +378,18 @@ export default function ProductOptionsForm({
 
                         {/* Add to Cart Button */}
                         <Button
-                            className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all flex justify-between px-6 text-white"
+                            className="flex h-auto min-h-12 w-full flex-1 flex-col gap-1 rounded-xl px-4 py-2.5 text-base font-bold shadow-md transition-all hover:shadow-lg sm:h-12 sm:flex-row sm:justify-between sm:gap-0 sm:px-6 text-white"
                             onClick={handleAddToCart}
                             disabled={!isValid || !ordering.acceptingOrders}
                             style={{
                                 backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
                             }}
                         >
-                            <span className="flex items-center gap-2">
-                                <ShoppingBag className="w-5 h-5" />
+                            <span className="flex items-center justify-center gap-2 sm:justify-start">
+                                <ShoppingBag className="h-5 w-5 shrink-0" />
                                 Adicionar
                             </span>
-                            <span>R$ {totalPrice.toFixed(2)}</span>
+                            <span className="tabular-nums sm:text-right">R$ {totalPrice.toFixed(2)}</span>
                         </Button>
                     </div>
                 </div>

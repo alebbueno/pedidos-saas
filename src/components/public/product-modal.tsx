@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { ClosedStoreBanner } from '@/components/public/closed-store-banner'
 import { useRestaurantOrderingOpen } from '@/hooks/use-restaurant-ordering-open'
+import { formatProductPriceDisplay, getProductPriceRange, priceRangeHasSpread } from '@/lib/product-price-range'
 
 interface ProductModalProps {
     product: Product & { product_option_groups: (ProductOptionGroup & { options: ProductOption[] })[] }
@@ -114,6 +115,10 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
 
         return price
     }
+
+    const listPriceRange = useMemo(() => getProductPriceRange(product), [product])
+    const listPriceLabel = useMemo(() => formatProductPriceDisplay(listPriceRange), [listPriceRange])
+    const listPriceSpread = useMemo(() => priceRangeHasSpread(listPriceRange), [listPriceRange])
 
     // Calculate Total Price
     const totalPrice = useMemo(() => {
@@ -249,9 +254,9 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
     const renderOptionGroups = (sels: Record<string, string[]>, half?: 'first' | 'second') => {
         return product.product_option_groups.sort((a, b) => (a.min_selection > 0 ? -1 : 1)).map(group => (
             <div key={group.id} className="space-y-3">
-                <div className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                    <Label className="font-bold text-base">{group.name}</Label>
-                    <span className="text-xs text-gray-500">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-2 rounded">
+                    <Label className="font-bold text-base shrink-0">{group.name}</Label>
+                    <span className="text-xs text-gray-500 max-w-full self-start sm:self-auto sm:text-right">
                         {group.min_selection > 0 ? 'Obrigatório' : 'Opcional'}
                         {group.max_selection > 1 && ` (Máx: ${group.max_selection})`}
                     </span>
@@ -263,7 +268,7 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                         return (
                             <div
                                 key={option.id}
-                                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 cursor-pointer"
+                                className="flex flex-col gap-2 p-2 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 cursor-pointer sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                                 onClick={() => {
                                     const isSelected = (sels[group.id] || []).includes(option.id)
                                     const selectedCount = (sels[group.id] || []).length
@@ -274,17 +279,17 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                                     }
                                 }}
                             >
-                                <div className="flex items-center space-x-2">
+                                <div className="flex min-w-0 flex-1 items-start gap-2">
                                     {group.type === 'single' ? (
-                                        <div className={cn("w-4 h-4 rounded-full border flex items-center justify-center", isSelected ? "border-primary bg-primary" : "border-gray-300")}>
+                                        <div className={cn("mt-0.5 h-4 w-4 shrink-0 rounded-full border flex items-center justify-center", isSelected ? "border-primary bg-primary" : "border-gray-300")}>
                                             {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                                         </div>
                                     ) : (
-                                        <Checkbox checked={isSelected} />
+                                        <Checkbox checked={isSelected} className="mt-0.5 shrink-0" />
                                     )}
-                                    <span className="text-sm">{option.name}</span>
+                                    <span className="min-w-0 flex-1 break-words text-sm leading-snug">{option.name}</span>
                                 </div>
-                                <span className="text-sm text-gray-600">
+                                <span className="shrink-0 self-end text-sm tabular-nums text-gray-600 sm:self-auto">
                                     {Number(option.price_modifier) > 0 && `+ R$ ${Number(option.price_modifier).toFixed(2)}`}
                                 </span>
                             </div>
@@ -301,6 +306,20 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                 <DialogHeader>
                     <DialogTitle>{product.name}</DialogTitle>
                     <DialogDescription>{product.description}</DialogDescription>
+                    {listPriceLabel !== 'Consultar' &&
+                        (listPriceSpread ? (
+                            <div
+                                className="flex flex-col pt-2 leading-tight tabular-nums"
+                                style={{ color: primaryColor }}
+                            >
+                                <span className="text-lg font-bold">R$ {listPriceRange.min.toFixed(2)}</span>
+                                <span className="text-base font-bold opacity-90">a R$ {listPriceRange.max.toFixed(2)}</span>
+                            </div>
+                        ) : (
+                            <p className="pt-2 text-lg font-bold" style={{ color: primaryColor }}>
+                                {listPriceLabel}
+                            </p>
+                        ))}
                     {product.is_made_to_order &&
                         product.made_to_order_lead_days != null &&
                         product.made_to_order_lead_days > 0 && (
@@ -379,8 +398,8 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                 </div>
 
                 <DialogFooter className="sticky bottom-0 bg-white p-4 border-t mt-4 flex flex-col gap-3 z-10">
-                    <div className="flex items-center justify-between gap-4 w-full">
-                        <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden h-12 bg-gray-50 shrink-0">
+                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <div className="flex items-center justify-center border border-gray-300 rounded-xl overflow-hidden h-12 bg-gray-50 shrink-0 sm:justify-start">
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -401,15 +420,15 @@ export default function ProductModal({ product, isOpen, onClose, restaurantId, r
                         </div>
 
                         <Button
-                            className="flex-1 h-12 rounded-xl text-base font-bold shadow-md hover:shadow-lg transition-all flex justify-between px-6 text-white"
+                            className="flex h-auto min-h-12 w-full flex-1 flex-col gap-1 rounded-xl px-4 py-2.5 text-base font-bold shadow-md transition-all hover:shadow-lg sm:h-12 sm:flex-row sm:justify-between sm:gap-0 sm:px-6 text-white"
                             onClick={handleAddToCart}
                             disabled={!isValid || !ordering.acceptingOrders}
                             style={{
                                 backgroundColor: ordering.acceptingOrders ? primaryColor : '#94a3b8',
                             }}
                         >
-                            <span>Adicionar</span>
-                            <span>R$ {totalPrice.toFixed(2)}</span>
+                            <span className="text-center sm:text-left">Adicionar</span>
+                            <span className="tabular-nums sm:text-right">R$ {totalPrice.toFixed(2)}</span>
                         </Button>
                     </div>
                 </DialogFooter>

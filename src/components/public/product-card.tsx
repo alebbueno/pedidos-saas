@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/card'
 import { Product, Restaurant, Category } from '@/types'
 import { canShowHalfAndHalf } from '@/lib/segment-rules'
+import { formatProductPriceDisplay, getProductPriceRange, priceRangeHasSpread } from '@/lib/product-price-range'
 import Image from 'next/image'
 import Link from 'next/link'
 import { SplitSquareHorizontal } from 'lucide-react'
@@ -17,25 +18,9 @@ export default function ProductCard({ product, restaurant, category }: ProductCa
     const primaryColor = restaurant.primary_color || '#F97316'
     const textColor = restaurant.text_color || '#000000'
 
-    // Calculate minimum price from options when base_price is 0
-    const calculateMinimumPrice = () => {
-        let minPrice = Number(product.base_price)
-
-        // If base price is 0, calculate from required options
-        if (minPrice === 0 && product.product_option_groups) {
-            product.product_option_groups.forEach((group: any) => {
-                if (group.min_selection > 0 && group.product_options && group.product_options.length > 0) {
-                    // Find the minimum price modifier in this required group
-                    const minModifier = Math.min(...group.product_options.map((opt: any) => Number(opt.price_modifier)))
-                    minPrice += minModifier
-                }
-            })
-        }
-
-        return minPrice
-    }
-
-    const displayPrice = calculateMinimumPrice()
+    const priceRange = getProductPriceRange(product)
+    const priceLabel = formatProductPriceDisplay(priceRange)
+    const showPriceSpread = priceRangeHasSpread(priceRange)
 
     return (
         <Link
@@ -97,17 +82,27 @@ export default function ProductCard({ product, restaurant, category }: ProductCa
                             )}
                         </div>
 
-                        <div className="flex justify-between items-center gap-2 mt-2">
+                        <div className="mt-2 flex flex-col gap-2.5 min-[400px]:flex-row min-[400px]:items-end min-[400px]:justify-between min-[400px]:gap-3">
+                            <div className="min-w-0 flex-1">
+                                {showPriceSpread ? (
+                                    <div
+                                        className="flex flex-col leading-tight tabular-nums"
+                                        style={{ color: primaryColor }}
+                                    >
+                                        <span className="text-[0.95rem] sm:text-lg font-bold">R$ {priceRange.min.toFixed(2)}</span>
+                                        <span className="text-xs sm:text-sm font-bold opacity-90">a R$ {priceRange.max.toFixed(2)}</span>
+                                    </div>
+                                ) : (
+                                    <span
+                                        className="text-[0.95rem] sm:text-base md:text-lg font-bold tabular-nums leading-tight"
+                                        style={{ color: primaryColor }}
+                                    >
+                                        {priceLabel}
+                                    </span>
+                                )}
+                            </div>
                             <span
-                                className="text-[0.95rem] sm:text-base md:text-lg font-bold tabular-nums min-w-0 truncate"
-                                style={{ color: primaryColor }}
-                            >
-                                {displayPrice > 0
-                                    ? `R$ ${displayPrice.toFixed(2)}`
-                                    : 'Consultar'}
-                            </span>
-                            <span
-                                className="inline-flex items-center justify-center min-h-11 h-11 shrink-0 rounded-full px-4 sm:px-5 text-sm font-bold shadow-sm text-white"
+                                className="inline-flex items-center justify-center min-h-11 h-11 shrink-0 self-end min-[400px]:self-auto rounded-full px-4 sm:px-5 text-sm font-bold shadow-sm text-white"
                                 style={{ backgroundColor: primaryColor }}
                             >
                                 Adicionar

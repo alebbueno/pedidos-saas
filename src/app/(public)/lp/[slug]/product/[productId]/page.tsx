@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import ProductOptionsForm from '@/components/public/product-options-form'
+import { formatProductPriceDisplay, getProductPriceRange, priceRangeHasSpread } from '@/lib/product-price-range'
 
 interface PageProps {
     params: Promise<{ slug: string; productId: string }>
@@ -31,30 +32,9 @@ export default async function ProductPage({ params }: PageProps) {
     const textColor = restaurant.text_color || '#000000'
     const backgroundColor = restaurant.background_color || '#FFFFFF'
 
-    // Calculate minimum price from options when base_price is 0
-    const calculateMinimumPrice = () => {
-        let minPrice = Number(product.base_price)
-
-        // If base price is 0, calculate from required options
-        if (minPrice === 0 && product.product_option_groups) {
-            product.product_option_groups.forEach((group: any) => {
-                if (group.min_selection > 0 && group.product_options && group.product_options.length > 0) {
-                    // Find the minimum price modifier in this required group
-                    const minModifier = Math.min(...group.product_options.map((opt: any) => Number(opt.price_modifier)))
-                    minPrice += minModifier
-                }
-            })
-        }
-
-        return minPrice
-    }
-
-    const displayPrice = calculateMinimumPrice()
-
-    // Check if product has options that can modify price
-    const hasVariablePrice = product.product_option_groups?.some(
-        (group: any) => group.product_options?.some((opt: any) => Number(opt.price_modifier) > 0)
-    )
+    const priceRange = getProductPriceRange(product)
+    const priceLabel = formatProductPriceDisplay(priceRange)
+    const showPriceSpread = priceRangeHasSpread(priceRange)
 
     return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor }}>
@@ -99,15 +79,27 @@ export default async function ProductPage({ params }: PageProps) {
                             {product.description}
                         </p>
                     )}
-                    <div className="flex items-center gap-3">
-                        {(hasVariablePrice || Number(product.base_price) === 0) && (
-                            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">
-                                A partir de
-                            </span>
+                    <div className="flex flex-wrap items-center gap-3">
+                        {!showPriceSpread &&
+                            Number(product.base_price) === 0 &&
+                            priceRange.min > 0 && (
+                                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">
+                                    A partir de
+                                </span>
+                            )}
+                        {showPriceSpread ? (
+                            <div
+                                className="flex flex-col leading-tight tabular-nums"
+                                style={{ color: primaryColor }}
+                            >
+                                <span className="text-2xl sm:text-3xl font-bold">R$ {priceRange.min.toFixed(2)}</span>
+                                <span className="text-lg sm:text-2xl font-bold opacity-90">a R$ {priceRange.max.toFixed(2)}</span>
+                            </div>
+                        ) : (
+                            <p className="text-2xl sm:text-3xl font-bold leading-tight" style={{ color: primaryColor }}>
+                                {priceLabel}
+                            </p>
                         )}
-                        <p className="text-3xl font-bold" style={{ color: primaryColor }}>
-                            R$ {displayPrice.toFixed(2)}
-                        </p>
                     </div>
                 </div>
 
