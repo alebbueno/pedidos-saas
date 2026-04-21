@@ -1,6 +1,7 @@
 /**
- * Faixa de preço do produto (base + grupos de opções), espelhando a lógica de
- * `calculatePriceForSelections` em product-options-form / product-modal.
+ * Faixa de preço exibida no cardálogo: base + apenas grupos `type === 'single'`
+ * (ex.: tamanho, ponto da carne). Grupos `multiple` são tratados como adicionais
+ * e não entram no "de X a Y" — o total final no carrinho continua somando tudo.
  */
 
 export type ProductPriceRange = {
@@ -9,6 +10,7 @@ export type ProductPriceRange = {
 }
 
 type OptionGroupLike = {
+    /** `single` = opções (faixa de preço); `multiple` = adicionais (fora da faixa) */
     type?: 'single' | 'multiple'
     min_selection?: number
     max_selection?: number
@@ -97,12 +99,16 @@ function groupContributionRange(group: OptionGroupLike): { min: number; max: num
     }
 }
 
+function isVariationGroupForPriceRange(group: OptionGroupLike): boolean {
+    return (group.type ?? 'single') !== 'multiple'
+}
+
 export function getProductPriceRange(product: {
     base_price?: number | string
     product_option_groups?: OptionGroupLike[] | null
 }): ProductPriceRange {
     const base = Number(product.base_price) || 0
-    const groups = product.product_option_groups ?? []
+    const groups = (product.product_option_groups ?? []).filter(isVariationGroupForPriceRange)
 
     let minT = base
     let maxT = base
